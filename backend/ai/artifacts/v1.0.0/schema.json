@@ -1,0 +1,268 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "name": "medicare_clinical_features",
+  "description": "Deterministic clinical feature schema for disease risk prediction and SHAP explainability.",
+  "metadata": {
+    "total_features": 27,
+    "symptom_features_count": 18,
+    "vital_features_count": 9,
+    "created_at": "2026-09-17"
+  },
+  "feature_order": [
+    "fever",
+    "cough",
+    "fatigue",
+    "headache",
+    "dyspnea",
+    "chest_pain",
+    "sore_throat",
+    "rhinorrhea",
+    "polyuria",
+    "polydipsia",
+    "dizziness",
+    "nausea",
+    "photophobia",
+    "body_aches",
+    "blurred_vision",
+    "diarrhea",
+    "chills",
+    "weight_loss",
+    "age",
+    "sex",
+    "systolic_bp",
+    "diastolic_bp",
+    "heart_rate",
+    "glucose",
+    "body_temperature",
+    "oxygen_saturation",
+    "bmi"
+  ],
+  "features": {
+    "fever": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Fever / Elevated Body Temperature / Pyrexia",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "cough": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Cough / Persistent Coughing / Phlegm",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "fatigue": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Fatigue / Exhaustion / Lethargy / Weakness",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "headache": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Headache / Cephalalgia / Migraine",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "dyspnea": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Shortness of Breath / Breathing Difficulty / Wheezing",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "chest_pain": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Chest Pain / Tightness / Angina / Pressure in Chest",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "sore_throat": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Sore Throat / Throat Pain / Pharyngitis",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "rhinorrhea": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Runny Nose / Nasal Congestion / Sneezing",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "polyuria": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Frequent Urination / Excessive Urination",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "polydipsia": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Excessive Thirst / Extreme Thirst",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "dizziness": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Dizziness / Lightheadedness / Vertigo",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "nausea": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Nausea / Vomiting / Emesis",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "photophobia": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Light Sensitivity / Pain in Bright Light",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "body_aches": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Myalgia / Muscle Pain / Body Aches / Joint Pain",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "blurred_vision": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Blurred / Blurry / Hazy Vision",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "diarrhea": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Diarrhea / Loose Stools / Abdominal Cramps",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "chills": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Chills / Rigors / Shivering",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "weight_loss": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Unexplained / Involuntary Weight Loss",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [0.0, 1.0]
+    },
+    "age": {
+      "type": "numeric",
+      "category": "demographic",
+      "description": "Patient Age in Years",
+      "unit": "years",
+      "default_imputation": 45.0,
+      "min_val": 0.0,
+      "max_val": 120.0
+    },
+    "sex": {
+      "type": "numeric",
+      "category": "demographic",
+      "description": "Patient Biological Sex (1.0 = Male, 0.0 = Female, 0.5 = Other/Neutral)",
+      "unit": "encoded",
+      "default_imputation": 0.5,
+      "min_val": 0.0,
+      "max_val": 1.0
+    },
+    "systolic_bp": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Systolic Blood Pressure",
+      "unit": "mmHg",
+      "default_imputation": 120.0,
+      "min_val": 50.0,
+      "max_val": 260.0
+    },
+    "diastolic_bp": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Diastolic Blood Pressure",
+      "unit": "mmHg",
+      "default_imputation": 80.0,
+      "min_val": 30.0,
+      "max_val": 160.0
+    },
+    "heart_rate": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Resting Heart Rate / Pulse",
+      "unit": "bpm",
+      "default_imputation": 72.0,
+      "min_val": 30.0,
+      "max_val": 250.0
+    },
+    "glucose": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Fasting / Random Blood Glucose",
+      "unit": "mg/dL",
+      "default_imputation": 95.0,
+      "min_val": 30.0,
+      "max_val": 600.0
+    },
+    "body_temperature": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Core Body Temperature in Celsius",
+      "unit": "celsius",
+      "default_imputation": 37.0,
+      "min_val": 30.0,
+      "max_val": 45.0
+    },
+    "oxygen_saturation": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Pulse Oximetry Oxygen Saturation (SpO2)",
+      "unit": "percent",
+      "default_imputation": 98.0,
+      "min_val": 50.0,
+      "max_val": 100.0
+    },
+    "bmi": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Body Mass Index",
+      "unit": "kg/m2",
+      "default_imputation": 24.5,
+      "min_val": 10.0,
+      "max_val": 70.0
+    }
+  }
+}
