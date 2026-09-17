@@ -1,0 +1,1 @@
+# MediCare Backend Automated Tests

@@ -1,0 +1,520 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+/* =========================================================
+   MEDICARE GLOBAL DARK MODE
+   ========================================================= */
+
+.dark {
+  color-scheme: dark;
+  color: #ffffff;
+}
+
+/* =========================================================
+   MAIN SURFACES
+   ========================================================= */
+
+.dark .bg-white {
+  background-color: #121c19 !important;
+}
+
+.dark .bg-\[\#ffffff\] {
+  background-color: #121c19 !important;
+}
+
+.dark .bg-\[\#fff\] {
+  background-color: #121c19 !important;
+}
+
+.dark .bg-\[\#fbfdfc\] {
+  background-color: #0b1210 !important;
+}
+
+.dark .bg-\[\#f7faf9\] {
+  background-color: #111b18 !important;
+}
+
+.dark .bg-\[\#f8fbfa\] {
+  background-color: #111b18 !important;
+}
+
+.dark .bg-\[\#f4faf7\] {
+  background-color: #10231e !important;
+}
+
+.dark .bg-\[\#f4fbf8\] {
+  background-color: #10231e !important;
+}
+
+.dark .bg-\[\#effaf6\] {
+  background-color: #102a23 !important;
+}
+
+/* =========================================================
+   REPORT / CARD SURFACES
+   ========================================================= */
+
+/*
+ * Prevent individual report rows/cards from accidentally
+ * becoming white in dark mode.
+ */
+
+.dark [class~="bg-white"] {
+  background-color: #121c19 !important;
+}
+
+.dark [class~="bg-[#ffffff]"] {
+  background-color: #121c19 !important;
+}
+
+.dark [class~="bg-[#fff]"] {
+  background-color: #121c19 !important;
+}
+
+/*
+ * Hover states.
+ */
+
+.dark .hover\:bg-white:hover {
+  background-color: #172520 !important;
+}
+
+.dark .hover\:bg-\[\#ffffff\]:hover {
+  background-color: #172520 !important;
+}
+
+.dark .hover\:bg-\[\#fff\]:hover {
+  background-color: #172520 !important;
+}
+
+/* =========================================================
+   COMMON BORDERS
+   ========================================================= */
+
+.dark .border-\[\#e3ece9\],
+.dark .border-\[\#e4ece9\],
+.dark .border-\[\#e0e8e5\],
+.dark .border-\[\#dcebe6\],
+.dark .border-\[\#d9e5e1\],
+.dark .border-\[\#e0ece7\],
+.dark .border-\[\#e1eae7\],
+.dark .border-\[\#edf1ef\],
+.dark .border-\[\#dfe7e4\] {
+  border-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+/*
+ * Generic borders used by Tailwind.
+ */
+
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+/* =========================================================
+   PRIMARY TEXT
+   ========================================================= */
+
+/*
+ * Existing Medicare dark text colors.
+ */
+
+.dark .text-\[\#073b35\],
+.dark .text-\[\#073d32\],
+.dark .text-\[\#123f35\],
+.dark .text-\[\#123D32\],
+.dark .text-\[\#173e37\],
+.dark .text-\[\#183d36\] {
+  color: #ffffff !important;
+}
+
+/*
+ * Other common dark text colors.
+ */
+
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-700 {
+  color: #ffffff !important;
+}
+
+/*
+ * Explicit white text stays white.
+ */
+
+.dark .text-white {
+  color: #ffffff !important;
+}
+
+/* =========================================================
+   SECONDARY TEXT
+   ========================================================= */
+
+.dark .text-\[\#71827e\],
+.dark .text-\[\#788984\],
+.dark .text-\[\#6f817c\],
+.dark .text-\[\#536963\],
+.dark .text-\[\#63746f\] {
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+/*
+ * Common Tailwind secondary text colors.
+ */
+
+.dark .text-gray-500,
+.dark .text-gray-600 {
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+.dark .text-gray-400 {
+  color: rgba(255, 255, 255, 0.50) !important;
+}
+
+/* =========================================================
+   REPORT TITLES
+   ========================================================= */
+
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: #ffffff;
+}
+
+/*
+ * Report title / heading colors.
+ */
+
+.dark [class*="text-[#0"],
+.dark [class*="text-[#1"],
+.dark [class*="text-[#2"],
+.dark [class*="text-[#3"] {
+  color: #ffffff !important;
+}
+
+/* =========================================================
+   REPORT DESCRIPTIONS / METADATA
+   ========================================================= */
+
+.dark p {
+  color: inherit;
+}
+
+/*
+ * Preserve secondary styling for known muted colors.
+ */
+
+.dark [class*="text-[#71827e"],
+.dark [class*="text-[#788984"],
+.dark [class*="text-[#6f817c"],
+.dark [class*="text-[#536963"],
+.dark [class*="text-[#63746f"] {
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+/* =========================================================
+   LINKS
+   ========================================================= */
+
+.dark a {
+  color: #ffffff;
+}
+
+.dark a:hover {
+  color: #22c7a0;
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.dark button {
+  color: #ffffff;
+}
+
+/*
+ * Dropdown buttons.
+ */
+
+.dark button.border-\[\#dfe7e4\],
+.dark button.border-\[\#dcebe6\] {
+  background-color: #121c19 !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+  color: rgba(255, 255, 255, 0.80) !important;
+}
+
+/*
+ * Generic light button backgrounds.
+ */
+
+.dark button.bg-white {
+  background-color: #121c19 !important;
+  color: #ffffff !important;
+}
+
+.dark button.hover\:bg-white:hover {
+  background-color: #172520 !important;
+}
+
+/* =========================================================
+   INPUTS
+   ========================================================= */
+
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #111b18 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: rgba(24, 195, 153, 0.65) !important;
+  outline-color: rgba(24, 195, 153, 0.25);
+}
+
+/* =========================================================
+   SEARCH INPUTS
+   ========================================================= */
+
+.dark input[type="search"] {
+  background-color: #111b18 !important;
+  color: #ffffff !important;
+}
+
+.dark input[type="search"]::placeholder {
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* =========================================================
+   DROPDOWNS
+   ========================================================= */
+
+.dark select,
+.dark option {
+  background-color: #121c19 !important;
+  color: #ffffff !important;
+}
+
+.dark [role="menu"],
+.dark [role="listbox"] {
+  background-color: #121c19 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* =========================================================
+   TABLES
+   ========================================================= */
+
+.dark table {
+  color: rgba(255, 255, 255, 0.80);
+}
+
+.dark th,
+.dark td {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark th {
+  color: #ffffff;
+}
+
+/* =========================================================
+   DIVIDERS
+   ========================================================= */
+
+.dark hr {
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+/* =========================================================
+   ICONS
+   ========================================================= */
+
+.dark svg {
+  color: inherit;
+}
+
+/*
+ * Keep Medicare green icons visible.
+ */
+
+.dark .text-\[\#00A878\],
+.dark .text-\[\#00a878\],
+.dark .text-\[\#009f78\],
+.dark .text-\[\#009b76\] {
+  color: #16b98f !important;
+}
+
+/* =========================================================
+   STATUS BADGES
+   ========================================================= */
+
+/*
+ * Analyzed / success badges.
+ */
+
+.dark .bg-\[\#e8f8f3\],
+.dark .bg-\[\#e5f7f1\],
+.dark .bg-\[\#e9f9f4\] {
+  background-color: rgba(22, 185, 143, 0.16) !important;
+}
+
+.dark .text-\[\#008f6b\],
+.dark .text-\[\#008c68\],
+.dark .text-\[\#009b76\] {
+  color: #42d7b0 !important;
+}
+
+/*
+ * Pending / warning badges.
+ */
+
+.dark .bg-\[\#fff6dc\],
+.dark .bg-\[\#fff7df\],
+.dark .bg-\[\#fff4d6\] {
+  background-color: rgba(245, 181, 45, 0.16) !important;
+}
+
+.dark .text-\[\#b77900\],
+.dark .text-\[\#a96f00\],
+.dark .text-\[\#9f6900\] {
+  color: #f3c45c !important;
+}
+
+/* =========================================================
+   SCROLLBARS
+   ========================================================= */
+
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0b1210;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #29443c;
+  border-radius: 10px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3b5c52;
+}
+
+/* =========================================================
+   SELECTION
+   ========================================================= */
+
+.dark ::selection {
+  background-color: rgba(22, 185, 143, 0.30);
+  color: #ffffff;
+}
+
+/* =========================================================
+   REPORT ROW FINAL OVERRIDES
+   ========================================================= */
+
+/*
+ * These are intentionally near the bottom so they win over
+ * Tailwind utility classes.
+ */
+
+.dark .bg-white,
+.dark .bg-\[\#ffffff\],
+.dark .bg-\[\#fff\] {
+  background-color: #121c19 !important;
+}
+
+/*
+ * Fix the exact issue visible in the screenshot:
+ * white report background + white report text.
+ */
+
+.dark .bg-white h1,
+.dark .bg-white h2,
+.dark .bg-white h3,
+.dark .bg-white h4,
+.dark .bg-white p,
+.dark .bg-white span,
+.dark .bg-white div {
+  color: inherit;
+}
+
+.dark .bg-white h1,
+.dark .bg-white h2,
+.dark .bg-white h3,
+.dark .bg-white h4 {
+  color: #ffffff !important;
+}
+
+/*
+ * White-background report cards should always use the
+ * dark surface in dark mode.
+ */
+
+.dark [class*="bg-white"] {
+  background-color: #121c19 !important;
+}
+
+/*
+ * But don't let this override intentional status colors.
+ */
+
+.dark [class*="bg-emerald"],
+.dark [class*="bg-green"],
+.dark [class*="bg-yellow"],
+.dark [class*="bg-amber"] {
+  background-color: revert-layer;
+}
+
+/* =========================================================
+   ACCESSIBILITY / CONTRAST
+   ========================================================= */
+
+.dark :disabled {
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.dark ::placeholder {
+  opacity: 1;
+}
+
+/* =========================================================
+   END MEDICARE DARK MODE
+   ========================================================= */
