@@ -1,13 +1,26 @@
+"""
+PubMed Integration Adapter.
+
+Provides functional integration boundary delegating to the canonical
+PubMedService in apps.assistant.services.pubmed_service.
+"""
 import os
-import requests
+from typing import List, Dict, Any
+from apps.assistant.services.pubmed_service import pubmed_service, PubMedService
 
 BASE_URL = os.getenv("PUBMED_BASE_URL", "https://eutils.ncbi.nlm.nih.gov/entrez/eutils")
 
 
-def search_pubmed(query: str, retmax: int = 5) -> list[dict]:
-    # Milestone 5: replace with robust parsing, retries, rate limits, and source normalization.
-    params = {"db": "pubmed", "term": query, "retmax": retmax, "retmode": "json"}
-    response = requests.get(f"{BASE_URL}/esearch.fcgi", params=params, timeout=10)
-    response.raise_for_status()
-    ids = response.json().get("esearchresult", {}).get("idlist", [])
-    return [{"pmid": pmid} for pmid in ids]
+def search_pubmed(query: str, retmax: int = 5, fetch_abstracts: bool = True) -> List[Dict[str, Any]]:
+    """
+    Searches PubMed and retrieves citations with metadata and abstracts.
+    Preserves backwards-compatible schema where each citation includes 'pmid'.
+    """
+    clean_query = query.strip()
+    if not clean_query:
+        return []
+
+    res = pubmed_service.search_pubmed(clean_query, limit=retmax, fetch_abstracts=fetch_abstracts)
+    citations = res.get("citations", [])
+    return citations
+

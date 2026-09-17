@@ -164,8 +164,18 @@ All endpoints are prefixed with `/api/v1/`.
 - `GET   /api/v1/admin/audit-logs/` — Paginated audit log records
 - `GET   /api/v1/admin/analytics/` — Real DB-derived platform metrics
 
-### Assistant Workflows
+### Assistant & RAG Workflows
+- `POST /api/v1/assistant/chat/` — Evidence-grounded RAG with PubMed citations and conversation persistence
 - `GET  /api/v1/assistant/history/` — Conversation & message history
+
+### Medicines & Pharmacological Intelligence Workflows
+- `GET  /api/v1/medicines/` — List active medications
+- `POST /api/v1/medicines/` — Prescribe or add medication
+- `GET  /api/v1/medicines/<id>/` — Medication detail
+- `POST /api/v1/medicines/interactions/` — Unified pairwise and patient-prescriptions interaction analysis
+- `GET  /api/v1/medicines/openfda/reactions/` — OpenFDA adverse drug reactions and boxed warnings
+- `POST /api/v1/medicines/openfda/interactions/` — OpenFDA pairwise interactions
+
 
 ---
 

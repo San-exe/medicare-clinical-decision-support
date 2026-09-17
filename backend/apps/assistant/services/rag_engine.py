@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any, List
 from django.utils import timezone
 from apps.assistant.models import ChatConversation, ChatMessage
 from .pubmed_service import pubmed_service
+from .llm_provider import get_llm_provider
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +18,13 @@ class RAGAssistantEngine:
     """
     Retrieval-Augmented Generation (RAG) engine for clinical decision support.
     Synthesizes evidence-based clinical explanations grounded in PubMed literature
-    and patient clinical records, persisting complete session history.
+    and patient clinical records using pluggable LLM architecture.
     """
+
+    def _normalize_query(self, query: str) -> str:
+        """Normalizes clinical query by trimming whitespace and punctuation noise."""
+        clean = " ".join(query.strip().split())
+        return clean
 
     def _build_patient_context(self, patient_user) -> str:
         """Assembles localized patient context (medications, records) if available."""
@@ -42,54 +48,24 @@ class RAGAssistantEngine:
 
         return " ".join(context_parts)
 
-    def _synthesize_answer(self, prompt: str, citations: List[Dict[str, Any]], patient_context: str) -> str:
-        """Constructs an evidence-grounded synthesized medical response."""
-        paragraphs = []
-
-        # 1. Clinical assessment of query
-        paragraphs.append(
-            f"Based on current clinical literature regarding '{prompt.strip()}', "
-            "clinical management prioritizes early diagnostic clarification, systematic symptom tracking, "
-            "and evidence-grounded therapeutic intervention."
-        )
-
-        # 2. Patient context integration
-        if patient_context:
-            paragraphs.append(f"Considering patient clinical history ({patient_context}), monitoring potential contraindications and response trajectories is indicated.")
-
-        # 3. Citation grounding
-        if citations:
-            evidence_summaries = []
-            for i, cit in enumerate(citations[:3], 1):
-                journal = cit.get("journal", "PubMed Literature")
-                title = cit.get("title", "Clinical Study")
-                year = cit.get("year", "Recent")
-                evidence_summaries.append(f"[{i}] {title} ({journal}, {year})")
-
-            paragraphs.append("Relevant medical evidence from peer-reviewed literature:\n• " + "\n• ".join(evidence_summaries))
-        else:
-            paragraphs.append("General clinical consensus recommends consulting guideline-directed medical therapy (GDMT).")
-
-        paragraphs.append("Recommendation: In the presence of red-flag symptoms such as severe shortness of breath, acute chest pain, or altered consciousness, urgent emergency evaluation is required.")
-
-        return "\n\n".join(paragraphs)
-
     def process_chat(
         self,
         user,
         prompt: str,
         patient_user=None,
         conversation_id: Optional[int] = None,
+        limit_citations: int = 3,
     ) -> Dict[str, Any]:
         """
         Executes end-to-end RAG pipeline:
         1. Manages chat conversation session.
-        2. Retrieves PubMed citations.
-        3. Synthesizes clinical answer.
-        4. Persists user and assistant messages with citations.
-        5. Returns structured payload with mandatory disclaimer.
+        2. Query normalization.
+        3. Retrieves PubMed citations and abstracts.
+        4. Synthesizes clinical answer via LLM provider.
+        5. Persists user and assistant messages with citations.
+        6. Returns structured payload with mandatory regulatory disclaimer.
         """
-        clean_prompt = prompt.strip()
+        clean_prompt = self._normalize_query(prompt)
 
         # 1. Session management
         conversation = None
@@ -109,12 +85,14 @@ class RAGAssistantEngine:
         )
 
         # 3. Retrieve PubMed evidence
-        pubmed_res = pubmed_service.search_pubmed(clean_prompt, limit=3)
+        pubmed_res = pubmed_service.search_pubmed(clean_prompt, limit=limit_citations, fetch_abstracts=True)
         citations = pubmed_res.get("citations", [])
 
-        # 4. Synthesize answer with context
+        # 4. Synthesize answer with context using LLM provider
         patient_context = self._build_patient_context(patient_user)
-        response_text = self._synthesize_answer(clean_prompt, citations, patient_context)
+        llm_provider = get_llm_provider()
+        llm_result = llm_provider.generate_response(clean_prompt, citations, patient_context)
+        response_text = llm_result.get("response", "")
 
         # 5. Record assistant response with citations
         assistant_msg = ChatMessage.objects.create(
@@ -135,8 +113,12 @@ class RAGAssistantEngine:
             "citations": citations,
             "disclaimer": MANDATORY_REGULATORY_DISCLAIMER,
             "patient_context_applied": bool(patient_context),
+            "provider": llm_result.get("provider", "extractive"),
+            "model": llm_result.get("model", "grounded_rules"),
+            "grounded": llm_result.get("grounded", bool(citations)),
             "created_at": assistant_msg.created_at,
         }
 
 
 rag_assistant_engine = RAGAssistantEngine()
+

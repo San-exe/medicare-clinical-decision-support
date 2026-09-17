@@ -53,11 +53,13 @@ FALLBACK_CITATIONS = {
 
 class PubMedService:
     """
-    NCBI Entrez E-utilities PubMed client with 24-hour caching and resilient fallback.
+    NCBI Entrez E-utilities PubMed client with 24-hour caching, abstract retrieval,
+    and resilient curated clinical guideline fallback.
     """
 
     ESEARCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
     ESUMMARY_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
+    EFETCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
     CACHE_TTL = 86400  # 24 hours
     TIMEOUT = 5.0      # seconds
 
@@ -66,10 +68,50 @@ class PubMedService:
         slug = "_".join(clean_q.split()[:8])
         return f"pubmed:search:{slug}:{limit}"
 
-    def search_pubmed(self, query: str, limit: int = 3) -> Dict[str, Any]:
+    def fetch_abstracts(self, id_list: List[str]) -> Dict[str, str]:
         """
-        Searches PubMed via ESearch and retrieves article metadata via ESummary.
-        Caches results for 24 hours and provides resilient fallbacks.
+        Retrieves article abstracts for PMIDs via NCBI EFetch.
+        """
+        abstracts = {}
+        if not id_list:
+            return abstracts
+
+        try:
+            fetch_params = {
+                "db": "pubmed",
+                "id": ",".join(id_list),
+                "rettype": "abstract",
+                "retmode": "text",
+            }
+            res = requests.get(self.EFETCH_URL, params=fetch_params, timeout=self.TIMEOUT)
+            if res.status_code == 200:
+                raw_text = res.text
+                current_pmid = None
+                lines_by_pmid: Dict[str, List[str]] = {}
+
+                for line in raw_text.splitlines():
+                    pmid_match = re.search(r"\bPMID:\s*(\d+)", line)
+                    if pmid_match:
+                        current_pmid = pmid_match.group(1)
+                        if current_pmid not in lines_by_pmid:
+                            lines_by_pmid[current_pmid] = []
+                    elif current_pmid:
+                        lines_by_pmid[current_pmid].append(line)
+
+                for pmid, lines in lines_by_pmid.items():
+                    joined = "\n".join(lines).strip()
+                    if joined:
+                        abstracts[pmid] = joined
+        except Exception as e:
+            logger.warning("Could not fetch PubMed abstracts via EFetch: %s", e)
+
+        return abstracts
+
+    def search_pubmed(self, query: str, limit: int = 3, fetch_abstracts: bool = False) -> Dict[str, Any]:
+        """
+        Searches PubMed via ESearch, retrieves metadata via ESummary, and optionally
+        extracts abstracts via EFetch for RAG literature grounding.
+        Caches results for 24 hours.
         """
         clean_query = query.strip()
         if not clean_query:
@@ -103,60 +145,73 @@ class PubMedService:
                 search_data = search_res.json()
                 id_list = search_data.get("esearchresult", {}).get("idlist", [])
 
-                if id_list:
-                    # 2. ESummary to retrieve citation metadata
-                    summary_params = {
-                        "db": "pubmed",
-                        "id": ",".join(id_list),
-                        "retmode": "json",
+                if not id_list:
+                    return {
+                        "query": clean_query,
+                        "citations": [],
+                        "total_results": 0,
+                        "cached": False,
+                        "status": "no_results",
+                        "message": f"No PubMed literature records found for '{clean_query}'.",
                     }
-                    sum_res = requests.get(self.ESUMMARY_URL, params=summary_params, timeout=self.TIMEOUT)
 
-                    if sum_res.status_code == 200:
-                        sum_data = sum_res.json()
-                        result_dict = sum_data.get("result", {})
-                        citations = []
+                # 2. ESummary to retrieve citation metadata
+                summary_params = {
+                    "db": "pubmed",
+                    "id": ",".join(id_list),
+                    "retmode": "json",
+                }
+                sum_res = requests.get(self.ESUMMARY_URL, params=summary_params, timeout=self.TIMEOUT)
 
-                        for pmid in id_list:
-                            doc = result_dict.get(pmid)
-                            if not doc:
-                                continue
+                if sum_res.status_code == 200:
+                    sum_data = sum_res.json()
+                    result_dict = sum_data.get("result", {})
+                    citations = []
 
-                            # Extract publication year
-                            pubdate = doc.get("pubdate", "")
-                            year_match = re.search(r"\b(19\d\d|20\d\d)\b", pubdate)
-                            year = year_match.group(1) if year_match else pubdate[:4]
+                    # 3. Optional EFetch for abstracts
+                    abstracts = self.fetch_abstracts(id_list) if fetch_abstracts else {}
 
-                            # Extract authors
-                            raw_authors = doc.get("authors", [])
-                            authors = [a.get("name") for a in raw_authors if isinstance(a, dict) and a.get("name")][:3]
+                    for pmid in id_list:
+                        doc = result_dict.get(pmid)
+                        if not doc:
+                            continue
 
-                            citations.append({
-                                "pmid": str(pmid),
-                                "title": doc.get("title", "").rstrip("."),
-                                "journal": doc.get("source", "PubMed Central"),
-                                "year": year if year else "Recent",
-                                "authors": authors,
-                                "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
-                            })
+                        # Extract publication year
+                        pubdate = doc.get("pubdate", "")
+                        year_match = re.search(r"\b(19\d\d|20\d\d)\b", pubdate)
+                        year = year_match.group(1) if year_match else pubdate[:4]
 
-                        if citations:
-                            result_payload = {
-                                "query": clean_query,
-                                "citations": citations,
-                                "total_results": len(citations),
-                                "cached": False,
-                                "status": "success",
-                            }
-                            cache.set(cache_key, result_payload, timeout=self.CACHE_TTL)
-                            return result_payload
+                        # Extract authors
+                        raw_authors = doc.get("authors", [])
+                        authors = [a.get("name") for a in raw_authors if isinstance(a, dict) and a.get("name")][:3]
+
+                        citations.append({
+                            "pmid": str(pmid),
+                            "title": doc.get("title", "").rstrip("."),
+                            "journal": doc.get("source", "PubMed Central"),
+                            "year": year if year else "Recent",
+                            "authors": authors,
+                            "abstract": abstracts.get(str(pmid), ""),
+                            "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
+                        })
+
+                    if citations:
+                        result_payload = {
+                            "query": clean_query,
+                            "citations": citations,
+                            "total_results": len(citations),
+                            "cached": False,
+                            "status": "success",
+                        }
+                        cache.set(cache_key, result_payload, timeout=self.CACHE_TTL)
+                        return result_payload
 
         except requests.RequestException as e:
             logger.warning("NCBI Entrez API request failed for query '%s': %s", clean_query, e)
         except Exception as e:
             logger.exception("Unexpected error querying PubMed E-utilities: %s", e)
 
-        # Fallback handling: deliver relevant verified clinical citations from fallback catalog
+        # Fallback handling: deliver relevant verified clinical citations from curated fallback catalog
         fallback_citations = []
         lowered_q = clean_query.lower()
         for key, cit in FALLBACK_CITATIONS.items():
@@ -172,9 +227,11 @@ class PubMedService:
             "total_results": len(fallback_citations[:limit]),
             "cached": False,
             "status": "fallback",
+            "is_fallback": True,
             "message": "Live PubMed E-utilities unavailable or rate-limited. Curated clinical citations provided.",
         }
         return fallback_payload
 
 
 pubmed_service = PubMedService()
+
