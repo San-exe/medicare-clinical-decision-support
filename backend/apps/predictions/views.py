@@ -17,7 +17,7 @@ from .services import (
 )
 from .services.disease_engine import DISEASE_PROFILES
 from ai.engine import get_engine, ModelNotLoadedError
-from ai.preprocessing import get_preprocessor
+from ai.preprocessing import get_preprocessor, get_preprocessor_v2
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +102,7 @@ class SymptomAnalysisListView(APIView):
         if not input_data:
             raise ValidationError("Either 'text' or 'symptoms' must be provided.")
 
-        preprocessor = get_preprocessor()
+        preprocessor = get_preprocessor_v2()
         symptom_res = preprocessor.parse_symptoms(input_data)
         canonical = symptom_res["canonical_symptoms"]
         negated = symptom_res["negated_symptoms"]
@@ -343,6 +343,7 @@ class DiseasePredictionCreateView(APIView):
             "differential_diagnoses": ml_result["differential_diagnoses"],
             "ranked_diseases": ranked_diagnoses,
             "ranked_diagnoses": ranked_diagnoses,
+            "tier2_clinical_matches": ml_result.get("tier2_clinical_matches", []),
             # SHAP Explainability (both object and array formats supported)
             "shap_analysis": shap_analysis_payload,
             "shap_explanations": shap_analysis_payload,

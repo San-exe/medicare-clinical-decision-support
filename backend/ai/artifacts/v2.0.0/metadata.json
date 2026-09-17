@@ -1,0 +1,890 @@
+{
+  "model_name": "MediCare-MultiDisease-XGBoost",
+  "version": "2.0.0",
+  "training_timestamp": "2026-09-17T13:55:20.682078+00:00",
+  "dataset_provenance": "synthetic-dev-fallback",
+  "target_classes": [
+    "Acute Angle-Closure Glaucoma",
+    "Acute Appendicitis",
+    "Acute Bacterial Meningitis",
+    "Acute Bronchitis",
+    "Acute Cholecystitis",
+    "Acute Cystitis",
+    "Acute Diverticulitis",
+    "Acute Glomerulonephritis",
+    "Acute Gout",
+    "Acute Kidney Injury",
+    "Acute Myocardial Infarction",
+    "Acute Otitis Media",
+    "Acute Pancreatitis",
+    "Acute Pericarditis",
+    "Acute Pyelonephritis",
+    "Acute Sinusitis",
+    "Acute Urticaria",
+    "Acute Viral Hepatitis",
+    "Addison's Disease",
+    "Allergic Rhinitis",
+    "Alopecia Areata",
+    "Angina Pectoris",
+    "Ankylosing Spondylitis",
+    "Aortic Stenosis",
+    "Atopic Dermatitis",
+    "Atrial Fibrillation",
+    "Bacterial Keratitis",
+    "Bell's Palsy",
+    "Benign Paroxysmal Positional Vertigo",
+    "Benign Prostatic Hyperplasia",
+    "Bronchial Asthma",
+    "Bronchiectasis",
+    "Celiac Disease",
+    "Cellulitis",
+    "Chickenpox",
+    "Cholera",
+    "Chronic Kidney Disease",
+    "Chronic Obstructive Pulmonary Disease",
+    "Cluster Headache",
+    "Community-Acquired Pneumonia",
+    "Congestive Heart Failure",
+    "Contact Dermatitis",
+    "Crohn's Disease",
+    "Croup",
+    "Cushing's Syndrome",
+    "Deep Vein Thrombosis",
+    "Dengue Fever",
+    "Dermatomyositis",
+    "Diabetic Ketoacidosis",
+    "Erythema Multiforme",
+    "Essential Hypertension",
+    "Fibromyalgia",
+    "Gastroesophageal Reflux Disease",
+    "Herpes Zoster",
+    "Hyperthyroidism",
+    "Hypoglycemia",
+    "Hypothyroidism",
+    "Idiopathic Pulmonary Fibrosis",
+    "Impetigo",
+    "Infectious Conjunctivitis",
+    "Infective Endocarditis",
+    "Influenza",
+    "Interstitial Cystitis",
+    "Ischemic Stroke",
+    "Leptospirosis",
+    "Liver Cirrhosis",
+    "Malaria",
+    "Migraine",
+    "M\u00e9ni\u00e8re's Disease",
+    "Nephrolithiasis",
+    "Nephrotic Syndrome",
+    "Obstructive Sleep Apnea",
+    "Osteoarthritis",
+    "Otitis Externa",
+    "Parkinson's Disease",
+    "Peptic Ulcer Disease",
+    "Peripheral Artery Disease",
+    "Peritonsillar Abscess",
+    "Plaque Psoriasis",
+    "Pleurisy",
+    "Polymyalgia Rheumatica",
+    "Primary Hyperparathyroidism",
+    "Psoriatic Arthritis",
+    "Pulmonary Embolism",
+    "Pulmonary Tuberculosis",
+    "Rheumatoid Arthritis",
+    "Scabies",
+    "Sciatica",
+    "Sj\u00f6gren's Syndrome",
+    "Spontaneous Pneumothorax",
+    "Streptococcal Pharyngitis",
+    "Systemic Lupus Erythematosus",
+    "Systemic Sclerosis",
+    "Tension Headache",
+    "Transient Ischemic Attack",
+    "Type 1 Diabetes",
+    "Type 2 Diabetes",
+    "Typhoid Fever",
+    "Ulcerative Colitis",
+    "Urethritis"
+  ],
+  "total_classes": 100,
+  "total_features": 163,
+  "feature_order": [
+    "fever",
+    "cough",
+    "fatigue",
+    "headache",
+    "dyspnea",
+    "chest_pain",
+    "sore_throat",
+    "rhinorrhea",
+    "polyuria",
+    "polydipsia",
+    "dizziness",
+    "nausea",
+    "photophobia",
+    "body_aches",
+    "blurred_vision",
+    "diarrhea",
+    "chills",
+    "weight_loss",
+    "abdominal_pain",
+    "jaundice",
+    "dark_urine",
+    "clay_colored_stools",
+    "ascites",
+    "hematemesis",
+    "heartburn",
+    "vomiting",
+    "melena",
+    "hematochezia",
+    "dysphagia",
+    "odynophagia",
+    "early_satiety",
+    "bloating",
+    "flatulence",
+    "constipation",
+    "steatorrhea",
+    "tenesmus",
+    "pruritus_ani",
+    "palpitations",
+    "leg_swelling",
+    "orthopnea",
+    "hemoptysis",
+    "wheezing",
+    "paroxysmal_nocturnal_dyspnea",
+    "syncope",
+    "presyncope",
+    "claudication",
+    "cyanosis",
+    "stridor",
+    "tachypnea",
+    "pleuritic_chest_pain",
+    "sputum_production",
+    "purulent_sputum",
+    "chest_tightness",
+    "nasal_congestion",
+    "hoarseness",
+    "snoring",
+    "tremor",
+    "numbness",
+    "tingling",
+    "seizures",
+    "confusion",
+    "ataxia",
+    "stiff_neck",
+    "facial_droop",
+    "dysarthria",
+    "aphasia",
+    "focal_weakness",
+    "vertigo",
+    "altered_mental_status",
+    "memory_loss",
+    "phonophobia",
+    "visual_aura",
+    "tinnitus",
+    "gait_unsteadiness",
+    "sciatica",
+    "flank_pain",
+    "hematuria",
+    "dysuria",
+    "oliguria",
+    "urinary_urgency",
+    "nocturia",
+    "urinary_incontinence",
+    "urinary_hesitancy",
+    "urinary_frequency",
+    "suprapubic_pain",
+    "frothy_urine",
+    "anuria",
+    "penile_discharge",
+    "pelvic_pain",
+    "skin_rash",
+    "itching",
+    "butterfly_rash",
+    "hives",
+    "joint_swelling",
+    "hair_loss",
+    "purpura",
+    "petechiae",
+    "erythema",
+    "joint_pain",
+    "morning_stiffness",
+    "skin_peeling",
+    "ulcers_oral",
+    "ulcers_genital",
+    "bullae",
+    "photosensitivity",
+    "raynaud_phenomenon",
+    "dry_eyes",
+    "dry_mouth",
+    "skin_thickening",
+    "nail_clubbing",
+    "easy_bruising",
+    "rigors",
+    "night_sweats",
+    "lymphadenopathy",
+    "malaise",
+    "weight_gain",
+    "anorexia",
+    "cachexia",
+    "insomnia",
+    "excessive_daytime_sleepiness",
+    "heat_intolerance",
+    "cold_intolerance",
+    "excessive_sweating",
+    "generalized_weakness",
+    "myalgia",
+    "arthralgia",
+    "fever_low_grade",
+    "goiter",
+    "hypoglycemia_symptoms",
+    "hyperphagia",
+    "galactorrhea",
+    "gynecomastia",
+    "hirsutism",
+    "pallor",
+    "bleeding_gums",
+    "epistaxis",
+    "menorrhagia",
+    "bone_pain",
+    "muscle_cramps",
+    "flushing",
+    "eye_pain",
+    "eye_redness",
+    "diplopia",
+    "vision_loss",
+    "ear_pain",
+    "ear_discharge",
+    "hearing_loss",
+    "sore_tongue",
+    "halitosis",
+    "toothache",
+    "loss_of_taste",
+    "loss_of_smell",
+    "foreign_body_sensation",
+    "epiphora",
+    "age",
+    "sex",
+    "systolic_bp",
+    "diastolic_bp",
+    "heart_rate",
+    "glucose",
+    "body_temperature",
+    "oxygen_saturation",
+    "bmi"
+  ],
+  "metrics": {
+    "macro_f1": 0.9557,
+    "weighted_f1": 0.9557,
+    "accuracy": 0.9557,
+    "log_loss": 0.1439,
+    "per_class_metrics": {
+      "Acute Angle-Closure Glaucoma": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Acute Appendicitis": {
+        "precision": 0.7576,
+        "recall": 0.8333,
+        "f1_score": 0.7937,
+        "support": 30
+      },
+      "Acute Bacterial Meningitis": {
+        "precision": 1.0,
+        "recall": 0.9333,
+        "f1_score": 0.9655,
+        "support": 30
+      },
+      "Acute Bronchitis": {
+        "precision": 0.9375,
+        "recall": 1.0,
+        "f1_score": 0.9677,
+        "support": 30
+      },
+      "Acute Cholecystitis": {
+        "precision": 0.8077,
+        "recall": 0.7,
+        "f1_score": 0.75,
+        "support": 30
+      },
+      "Acute Cystitis": {
+        "precision": 0.7742,
+        "recall": 0.8,
+        "f1_score": 0.7869,
+        "support": 30
+      },
+      "Acute Diverticulitis": {
+        "precision": 0.9032,
+        "recall": 0.9333,
+        "f1_score": 0.918,
+        "support": 30
+      },
+      "Acute Glomerulonephritis": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Acute Gout": {
+        "precision": 0.9091,
+        "recall": 1.0,
+        "f1_score": 0.9524,
+        "support": 30
+      },
+      "Acute Kidney Injury": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Acute Myocardial Infarction": {
+        "precision": 0.9667,
+        "recall": 0.9667,
+        "f1_score": 0.9667,
+        "support": 30
+      },
+      "Acute Otitis Media": {
+        "precision": 0.9375,
+        "recall": 1.0,
+        "f1_score": 0.9677,
+        "support": 30
+      },
+      "Acute Pancreatitis": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Acute Pericarditis": {
+        "precision": 0.9355,
+        "recall": 0.9667,
+        "f1_score": 0.9508,
+        "support": 30
+      },
+      "Acute Pyelonephritis": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Acute Sinusitis": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Acute Urticaria": {
+        "precision": 0.9375,
+        "recall": 1.0,
+        "f1_score": 0.9677,
+        "support": 30
+      },
+      "Acute Viral Hepatitis": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Addison's Disease": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Allergic Rhinitis": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Alopecia Areata": {
+        "precision": 0.9375,
+        "recall": 1.0,
+        "f1_score": 0.9677,
+        "support": 30
+      },
+      "Angina Pectoris": {
+        "precision": 0.9667,
+        "recall": 0.9667,
+        "f1_score": 0.9667,
+        "support": 30
+      },
+      "Ankylosing Spondylitis": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Aortic Stenosis": {
+        "precision": 0.9655,
+        "recall": 0.9333,
+        "f1_score": 0.9492,
+        "support": 30
+      },
+      "Atopic Dermatitis": {
+        "precision": 0.3529,
+        "recall": 0.4,
+        "f1_score": 0.375,
+        "support": 30
+      },
+      "Atrial Fibrillation": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Bacterial Keratitis": {
+        "precision": 0.9375,
+        "recall": 1.0,
+        "f1_score": 0.9677,
+        "support": 30
+      },
+      "Bell's Palsy": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Benign Paroxysmal Positional Vertigo": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Benign Prostatic Hyperplasia": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Bronchial Asthma": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Bronchiectasis": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Celiac Disease": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Cellulitis": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Chickenpox": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Cholera": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Chronic Kidney Disease": {
+        "precision": 0.9091,
+        "recall": 1.0,
+        "f1_score": 0.9524,
+        "support": 30
+      },
+      "Chronic Obstructive Pulmonary Disease": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Cluster Headache": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Community-Acquired Pneumonia": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Congestive Heart Failure": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Contact Dermatitis": {
+        "precision": 0.7778,
+        "recall": 0.7,
+        "f1_score": 0.7368,
+        "support": 30
+      },
+      "Crohn's Disease": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Croup": {
+        "precision": 1.0,
+        "recall": 0.9333,
+        "f1_score": 0.9655,
+        "support": 30
+      },
+      "Cushing's Syndrome": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Deep Vein Thrombosis": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Dengue Fever": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Dermatomyositis": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Diabetic Ketoacidosis": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Erythema Multiforme": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Essential Hypertension": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Fibromyalgia": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Gastroesophageal Reflux Disease": {
+        "precision": 0.9667,
+        "recall": 0.9667,
+        "f1_score": 0.9667,
+        "support": 30
+      },
+      "Herpes Zoster": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Hyperthyroidism": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Hypoglycemia": {
+        "precision": 1.0,
+        "recall": 0.9,
+        "f1_score": 0.9474,
+        "support": 30
+      },
+      "Hypothyroidism": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Idiopathic Pulmonary Fibrosis": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Impetigo": {
+        "precision": 0.9333,
+        "recall": 0.9333,
+        "f1_score": 0.9333,
+        "support": 30
+      },
+      "Infectious Conjunctivitis": {
+        "precision": 1.0,
+        "recall": 0.9,
+        "f1_score": 0.9474,
+        "support": 30
+      },
+      "Infective Endocarditis": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Influenza": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Interstitial Cystitis": {
+        "precision": 0.7931,
+        "recall": 0.7667,
+        "f1_score": 0.7797,
+        "support": 30
+      },
+      "Ischemic Stroke": {
+        "precision": 0.9667,
+        "recall": 0.9667,
+        "f1_score": 0.9667,
+        "support": 30
+      },
+      "Leptospirosis": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Liver Cirrhosis": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Malaria": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Migraine": {
+        "precision": 0.9355,
+        "recall": 0.9667,
+        "f1_score": 0.9508,
+        "support": 30
+      },
+      "M\u00e9ni\u00e8re's Disease": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Nephrolithiasis": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Nephrotic Syndrome": {
+        "precision": 1.0,
+        "recall": 0.9333,
+        "f1_score": 0.9655,
+        "support": 30
+      },
+      "Obstructive Sleep Apnea": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Osteoarthritis": {
+        "precision": 0.963,
+        "recall": 0.8667,
+        "f1_score": 0.9123,
+        "support": 30
+      },
+      "Otitis Externa": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Parkinson's Disease": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Peptic Ulcer Disease": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Peripheral Artery Disease": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Peritonsillar Abscess": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Plaque Psoriasis": {
+        "precision": 0.8276,
+        "recall": 0.8,
+        "f1_score": 0.8136,
+        "support": 30
+      },
+      "Pleurisy": {
+        "precision": 0.9286,
+        "recall": 0.8667,
+        "f1_score": 0.8966,
+        "support": 30
+      },
+      "Polymyalgia Rheumatica": {
+        "precision": 0.9375,
+        "recall": 1.0,
+        "f1_score": 0.9677,
+        "support": 30
+      },
+      "Primary Hyperparathyroidism": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Psoriatic Arthritis": {
+        "precision": 1.0,
+        "recall": 0.9333,
+        "f1_score": 0.9655,
+        "support": 30
+      },
+      "Pulmonary Embolism": {
+        "precision": 0.9667,
+        "recall": 0.9667,
+        "f1_score": 0.9667,
+        "support": 30
+      },
+      "Pulmonary Tuberculosis": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Rheumatoid Arthritis": {
+        "precision": 0.9375,
+        "recall": 1.0,
+        "f1_score": 0.9677,
+        "support": 30
+      },
+      "Scabies": {
+        "precision": 0.4138,
+        "recall": 0.4,
+        "f1_score": 0.4068,
+        "support": 30
+      },
+      "Sciatica": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Sj\u00f6gren's Syndrome": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Spontaneous Pneumothorax": {
+        "precision": 0.9655,
+        "recall": 0.9333,
+        "f1_score": 0.9492,
+        "support": 30
+      },
+      "Streptococcal Pharyngitis": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      },
+      "Systemic Lupus Erythematosus": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Systemic Sclerosis": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Tension Headache": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Transient Ischemic Attack": {
+        "precision": 0.9667,
+        "recall": 0.9667,
+        "f1_score": 0.9667,
+        "support": 30
+      },
+      "Type 1 Diabetes": {
+        "precision": 1.0,
+        "recall": 0.9667,
+        "f1_score": 0.9831,
+        "support": 30
+      },
+      "Type 2 Diabetes": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Typhoid Fever": {
+        "precision": 1.0,
+        "recall": 0.9333,
+        "f1_score": 0.9655,
+        "support": 30
+      },
+      "Ulcerative Colitis": {
+        "precision": 0.9677,
+        "recall": 1.0,
+        "f1_score": 0.9836,
+        "support": 30
+      },
+      "Urethritis": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 30
+      }
+    }
+  },
+  "training_config": {
+    "n_estimators": 120,
+    "max_depth": 6,
+    "learning_rate": 0.08,
+    "missing_value_handling": "native_directional_split_np_nan",
+    "objective": "multi:softprob"
+  }
+}

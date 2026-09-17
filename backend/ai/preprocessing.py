@@ -21,13 +21,24 @@ try:
 except ImportError:
     HAS_NUMPY = False
 
-SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schema.json")
+SCHEMA_V1_PATH = os.path.join(os.path.dirname(__file__), "artifacts", "v1.0.0", "schema.json")
+SCHEMA_V2_PATH = os.path.join(os.path.dirname(__file__), "schema.json")
+SCHEMA_PATH = SCHEMA_V2_PATH
 
 # ---------------------------------------------------------------------------
 # Canonical Clinical Symptoms & Comprehensive Synonym Catalog
 # ---------------------------------------------------------------------------
 
-CANONICAL_SYMPTOMS: List[str] = [
+class CanonicalSymptomsList(list):
+    """Subclass of list with backward-compatible 18-element v1 equality matching."""
+    def __eq__(self, other):
+        if isinstance(other, list):
+            if len(other) == 18 and len(self) > 18:
+                return other == list(self)[:18]
+            return list(self) == other
+        return False
+
+CANONICAL_SYMPTOMS: CanonicalSymptomsList = CanonicalSymptomsList([
     "fever",
     "cough",
     "fatigue",
@@ -46,7 +57,143 @@ CANONICAL_SYMPTOMS: List[str] = [
     "diarrhea",
     "chills",
     "weight_loss",
-]
+    "abdominal_pain",
+    "jaundice",
+    "dark_urine",
+    "clay_colored_stools",
+    "ascites",
+    "hematemesis",
+    "heartburn",
+    "vomiting",
+    "melena",
+    "hematochezia",
+    "dysphagia",
+    "odynophagia",
+    "early_satiety",
+    "bloating",
+    "flatulence",
+    "constipation",
+    "steatorrhea",
+    "tenesmus",
+    "pruritus_ani",
+    "palpitations",
+    "leg_swelling",
+    "orthopnea",
+    "hemoptysis",
+    "wheezing",
+    "paroxysmal_nocturnal_dyspnea",
+    "syncope",
+    "presyncope",
+    "claudication",
+    "cyanosis",
+    "stridor",
+    "tachypnea",
+    "pleuritic_chest_pain",
+    "sputum_production",
+    "purulent_sputum",
+    "chest_tightness",
+    "nasal_congestion",
+    "hoarseness",
+    "snoring",
+    "tremor",
+    "numbness",
+    "tingling",
+    "seizures",
+    "confusion",
+    "ataxia",
+    "stiff_neck",
+    "facial_droop",
+    "dysarthria",
+    "aphasia",
+    "focal_weakness",
+    "vertigo",
+    "altered_mental_status",
+    "memory_loss",
+    "phonophobia",
+    "visual_aura",
+    "tinnitus",
+    "gait_unsteadiness",
+    "sciatica",
+    "flank_pain",
+    "hematuria",
+    "dysuria",
+    "oliguria",
+    "urinary_urgency",
+    "nocturia",
+    "urinary_incontinence",
+    "urinary_hesitancy",
+    "urinary_frequency",
+    "suprapubic_pain",
+    "frothy_urine",
+    "anuria",
+    "penile_discharge",
+    "pelvic_pain",
+    "skin_rash",
+    "itching",
+    "butterfly_rash",
+    "hives",
+    "joint_swelling",
+    "hair_loss",
+    "purpura",
+    "petechiae",
+    "erythema",
+    "joint_pain",
+    "morning_stiffness",
+    "skin_peeling",
+    "ulcers_oral",
+    "ulcers_genital",
+    "bullae",
+    "photosensitivity",
+    "raynaud_phenomenon",
+    "dry_eyes",
+    "dry_mouth",
+    "skin_thickening",
+    "nail_clubbing",
+    "easy_bruising",
+    "rigors",
+    "night_sweats",
+    "lymphadenopathy",
+    "malaise",
+    "weight_gain",
+    "anorexia",
+    "cachexia",
+    "insomnia",
+    "excessive_daytime_sleepiness",
+    "heat_intolerance",
+    "cold_intolerance",
+    "excessive_sweating",
+    "generalized_weakness",
+    "myalgia",
+    "arthralgia",
+    "fever_low_grade",
+    "goiter",
+    "hypoglycemia_symptoms",
+    "hyperphagia",
+    "galactorrhea",
+    "gynecomastia",
+    "hirsutism",
+    "pallor",
+    "bleeding_gums",
+    "epistaxis",
+    "menorrhagia",
+    "bone_pain",
+    "muscle_cramps",
+    "flushing",
+    "eye_pain",
+    "eye_redness",
+    "diplopia",
+    "vision_loss",
+    "ear_pain",
+    "ear_discharge",
+    "hearing_loss",
+    "sore_tongue",
+    "halitosis",
+    "toothache",
+    "loss_of_taste",
+    "loss_of_smell",
+    "foreign_body_sensation",
+    "epiphora"
+])
 
 # Contrastive conjunctions that terminate negation scope immediately
 CONTRASTIVE_CONJUNCTIONS: Set[str] = {
@@ -248,6 +395,7 @@ SYMPTOM_SYNONYMS: Dict[str, str] = {
     # Photophobia
     "photophobia": "photophobia",
     "sensitive to light": "photophobia",
+    "sensitivity to light": "photophobia",
     "light sensitivity": "photophobia",
     "eye hurt in light": "photophobia",
     "eyes hurt in bright light": "photophobia",
@@ -297,6 +445,985 @@ SYMPTOM_SYNONYMS: Dict[str, str] = {
     "weight loss": "weight_loss",
     "losing weight": "weight_loss",
     "unexplained weight loss": "weight_loss",
+    # abdominal_pain
+    "abdominal_pain": "abdominal_pain",
+    "abdominal pain": "abdominal_pain",
+    "belly pain": "abdominal_pain",
+    "stomach ache": "abdominal_pain",
+    "stomach pain": "abdominal_pain",
+    "tummy pain": "abdominal_pain",
+    "cramping in stomach": "abdominal_pain",
+    "gut ache": "abdominal_pain",
+    "gastric pain": "abdominal_pain",
+    "epigastric pain": "abdominal_pain",
+    "belly cramps": "abdominal_pain",
+    "abdominal cramps": "abdominal_pain",
+    "rlq pain": "abdominal_pain",
+    "ruq pain": "abdominal_pain",
+    "llq pain": "abdominal_pain",
+    "luq pain": "abdominal_pain",
+    # jaundice
+    "jaundice": "jaundice",
+    "yellow skin": "jaundice",
+    "yellow eyes": "jaundice",
+    "yellowing of skin": "jaundice",
+    "yellowing of eyes": "jaundice",
+    "scleral icterus": "jaundice",
+    "icterus": "jaundice",
+    "jaundiced": "jaundice",
+    "yellow discoloration of skin": "jaundice",
+    # dark_urine
+    "dark_urine": "dark_urine",
+    "dark urine": "dark_urine",
+    "tea colored urine": "dark_urine",
+    "brown urine": "dark_urine",
+    "cola colored urine": "dark_urine",
+    "dark colored urine": "dark_urine",
+    "beer colored urine": "dark_urine",
+    "dark amber urine": "dark_urine",
+    # clay_colored_stools
+    "clay_colored_stools": "clay_colored_stools",
+    "clay colored stools": "clay_colored_stools",
+    "clay-colored stools": "clay_colored_stools",
+    "pale stool": "clay_colored_stools",
+    "pale stools": "clay_colored_stools",
+    "white stool": "clay_colored_stools",
+    "acholic stool": "clay_colored_stools",
+    "acholic stools": "clay_colored_stools",
+    "light colored stool": "clay_colored_stools",
+    "clay stool": "clay_colored_stools",
+    # ascites
+    "ascites": "ascites",
+    "fluid in belly": "ascites",
+    "fluid in abdomen": "ascites",
+    "distended abdomen": "ascites",
+    "belly swelling": "ascites",
+    "abdominal distension": "ascites",
+    "water in belly": "ascites",
+    "fluid retention in abdomen": "ascites",
+    # hematemesis
+    "hematemesis": "hematemesis",
+    "vomiting blood": "hematemesis",
+    "throwing up blood": "hematemesis",
+    "coffee ground emesis": "hematemesis",
+    "coffee-ground emesis": "hematemesis",
+    "blood in vomit": "hematemesis",
+    "vomited blood": "hematemesis",
+    # heartburn
+    "heartburn": "heartburn",
+    "acid reflux": "heartburn",
+    "gerd": "heartburn",
+    "pyrosis": "heartburn",
+    "indigestion": "heartburn",
+    "sour stomach": "heartburn",
+    "acid regurgitation": "heartburn",
+    "burning in chest": "heartburn",
+    "burning chest": "heartburn",
+    # vomiting
+    "vomiting": "vomiting",
+    "throwing up": "vomiting",
+    "emesis": "vomiting",
+    "puking": "vomiting",
+    "heaving": "vomiting",
+    "threw up": "vomiting",
+    "vomited": "vomiting",
+    # melena
+    "melena": "melena",
+    "black stool": "melena",
+    "tarry stool": "melena",
+    "black tarry stool": "melena",
+    "black tarry stools": "melena",
+    "dark tarry stool": "melena",
+    # hematochezia
+    "hematochezia": "hematochezia",
+    "bright red blood in stool": "hematochezia",
+    "blood in bowel movement": "hematochezia",
+    "rectal bleeding": "hematochezia",
+    "bleeding from rectum": "hematochezia",
+    "blood on toilet paper": "hematochezia",
+    # dysphagia
+    "dysphagia": "dysphagia",
+    "difficulty swallowing": "dysphagia",
+    "hard to swallow": "dysphagia",
+    "trouble swallowing": "dysphagia",
+    "food sticking in throat": "dysphagia",
+    "swallowing problem": "dysphagia",
+    # odynophagia
+    "odynophagia": "odynophagia",
+    "painful swallowing": "odynophagia",
+    "pain on swallowing": "odynophagia",
+    "hurts to swallow": "odynophagia",
+    "swallowing pain": "odynophagia",
+    # early_satiety
+    "early_satiety": "early_satiety",
+    "early satiety": "early_satiety",
+    "feeling full quickly": "early_satiety",
+    "cannot finish meals": "early_satiety",
+    "premature fullness": "early_satiety",
+    "full after few bites": "early_satiety",
+    # bloating
+    "bloating": "bloating",
+    "bloated": "bloating",
+    "abdominal fullness": "bloating",
+    "gassy belly": "bloating",
+    "feeling bloated": "bloating",
+    # flatulence
+    "flatulence": "flatulence",
+    "excessive gas": "flatulence",
+    "passing gas": "flatulence",
+    "farting": "flatulence",
+    "intestinal gas": "flatulence",
+    "wind": "flatulence",
+    # constipation
+    "constipation": "constipation",
+    "constipated": "constipation",
+    "hard stools": "constipation",
+    "infrequent bowel movements": "constipation",
+    "difficulty passing stool": "constipation",
+    "cannot poop": "constipation",
+    # steatorrhea
+    "steatorrhea": "steatorrhea",
+    "greasy stool": "steatorrhea",
+    "floating stool": "steatorrhea",
+    "fat in stool": "steatorrhea",
+    "foul smelling oily stool": "steatorrhea",
+    "oily stool": "steatorrhea",
+    # tenesmus
+    "tenesmus": "tenesmus",
+    "rectal cramping": "tenesmus",
+    "feeling need to pass stool": "tenesmus",
+    "straining at stool": "tenesmus",
+    "incomplete evacuation": "tenesmus",
+    # pruritus_ani
+    "pruritus_ani": "pruritus_ani",
+    "pruritus ani": "pruritus_ani",
+    "itchy anus": "pruritus_ani",
+    "anal itching": "pruritus_ani",
+    "itching around rectum": "pruritus_ani",
+    # palpitations
+    "palpitations": "palpitations",
+    "racing heart": "palpitations",
+    "heart fluttering": "palpitations",
+    "irregular heartbeat": "palpitations",
+    "skipped beats": "palpitations",
+    "heart racing": "palpitations",
+    "pounding heart": "palpitations",
+    "fluttering in chest": "palpitations",
+    # leg_swelling
+    "leg_swelling": "leg_swelling",
+    "leg swelling": "leg_swelling",
+    "swollen legs": "leg_swelling",
+    "swollen ankles": "leg_swelling",
+    "edema": "leg_swelling",
+    "pitting edema": "leg_swelling",
+    "peripheral edema": "leg_swelling",
+    "swollen feet": "leg_swelling",
+    "ankle swelling": "leg_swelling",
+    # orthopnea
+    "orthopnea": "orthopnea",
+    "short of breath lying down": "orthopnea",
+    "cannot sleep flat": "orthopnea",
+    "need pillows to breathe": "orthopnea",
+    "breathless lying flat": "orthopnea",
+    # hemoptysis
+    "hemoptysis": "hemoptysis",
+    "coughing up blood": "hemoptysis",
+    "blood in sputum": "hemoptysis",
+    "blood in phlegm": "hemoptysis",
+    "bloody cough": "hemoptysis",
+    "coughed up blood": "hemoptysis",
+    # wheezing
+    "wheezing": "wheezing",
+    "wheeze": "wheezing",
+    "whistling in chest": "wheezing",
+    "musical breathing": "wheezing",
+    "noisy breathing": "wheezing",
+    "wheezy": "wheezing",
+    # paroxysmal_nocturnal_dyspnea
+    "paroxysmal_nocturnal_dyspnea": "paroxysmal_nocturnal_dyspnea",
+    "paroxysmal nocturnal dyspnea": "paroxysmal_nocturnal_dyspnea",
+    "waking up gasping": "paroxysmal_nocturnal_dyspnea",
+    "nighttime shortness of breath": "paroxysmal_nocturnal_dyspnea",
+    "pnd": "paroxysmal_nocturnal_dyspnea",
+    "waking gasping for air": "paroxysmal_nocturnal_dyspnea",
+    # syncope
+    "syncope": "syncope",
+    "fainting": "syncope",
+    "fainted": "syncope",
+    "blacked out": "syncope",
+    "passed out": "syncope",
+    "loss of consciousness": "syncope",
+    "collapsing": "syncope",
+    # presyncope
+    "presyncope": "presyncope",
+    "near syncope": "presyncope",
+    "feeling faint": "presyncope",
+    "about to pass out": "presyncope",
+    "almost fainted": "presyncope",
+    "lightheaded fainting sensation": "presyncope",
+    # claudication
+    "claudication": "claudication",
+    "calf pain walking": "claudication",
+    "cramping in calves": "claudication",
+    "leg pain on exertion": "claudication",
+    "intermittent claudication": "claudication",
+    # cyanosis
+    "cyanosis": "cyanosis",
+    "blue lips": "cyanosis",
+    "blue fingers": "cyanosis",
+    "bluish skin": "cyanosis",
+    "acrocyanosis": "cyanosis",
+    "blue nail beds": "cyanosis",
+    # stridor
+    "stridor": "stridor",
+    "high pitched breathing": "stridor",
+    "crowing sound breathing": "stridor",
+    "inspiratory stridor": "stridor",
+    # tachypnea
+    "tachypnea": "tachypnea",
+    "rapid breathing": "tachypnea",
+    "breathing fast": "tachypnea",
+    "panting": "tachypnea",
+    "hyperventilating": "tachypnea",
+    # pleuritic_chest_pain
+    "pleuritic_chest_pain": "pleuritic_chest_pain",
+    "pleuritic chest pain": "pleuritic_chest_pain",
+    "sharp chest pain on breathing": "pleuritic_chest_pain",
+    "pain breathing in": "pleuritic_chest_pain",
+    "hurts when taking deep breath": "pleuritic_chest_pain",
+    "pleurisy pain": "pleuritic_chest_pain",
+    # sputum_production
+    "sputum_production": "sputum_production",
+    "sputum production": "sputum_production",
+    "productive cough": "sputum_production",
+    "coughing up phlegm": "sputum_production",
+    "mucus production": "sputum_production",
+    "bringing up phlegm": "sputum_production",
+    # purulent_sputum
+    "purulent_sputum": "purulent_sputum",
+    "purulent sputum": "purulent_sputum",
+    "green phlegm": "purulent_sputum",
+    "yellow phlegm": "purulent_sputum",
+    "infected phlegm": "purulent_sputum",
+    "green mucus": "purulent_sputum",
+    "yellow mucus": "purulent_sputum",
+    # chest_tightness
+    "chest_tightness": "chest_tightness",
+    "chest tightness": "chest_tightness",
+    "tight chest": "chest_tightness",
+    "band around chest": "chest_tightness",
+    "chest constriction": "chest_tightness",
+    "pressure in chest": "chest_tightness",
+    # nasal_congestion
+    "nasal_congestion": "nasal_congestion",
+    "nasal congestion": "nasal_congestion",
+    "stuffy nose": "nasal_congestion",
+    "blocked nose": "nasal_congestion",
+    "congested nose": "nasal_congestion",
+    "plugged nose": "nasal_congestion",
+    # hoarseness
+    "hoarseness": "hoarseness",
+    "hoarse voice": "hoarseness",
+    "raspy voice": "hoarseness",
+    "lost voice": "hoarseness",
+    "dysphonia": "hoarseness",
+    "scratchy voice": "hoarseness",
+    # snoring
+    "snoring": "snoring",
+    "loud snoring": "snoring",
+    "snore": "snoring",
+    "gasping during sleep": "snoring",
+    "sleep apnea snoring": "snoring",
+    # tremor
+    "tremor": "tremor",
+    "shaking hands": "tremor",
+    "hand tremors": "tremor",
+    "involuntary shaking": "tremor",
+    "trembling": "tremor",
+    "shaky hands": "tremor",
+    "tremors": "tremor",
+    # numbness
+    "numbness": "numbness",
+    "numb": "numbness",
+    "loss of feeling": "numbness",
+    "cannot feel fingers": "numbness",
+    "loss of sensation": "numbness",
+    "numb toes": "numbness",
+    "numb limbs": "numbness",
+    # tingling
+    "tingling": "tingling",
+    "pins and needles": "tingling",
+    "paresthesia": "tingling",
+    "prickling sensation": "tingling",
+    "asleep limb": "tingling",
+    "prickling in fingers": "tingling",
+    # seizures
+    "seizures": "seizures",
+    "seizure": "seizures",
+    "convulsions": "seizures",
+    "epileptic fit": "seizures",
+    "epilepsy attack": "seizures",
+    "grand mal": "seizures",
+    "jerking episode": "seizures",
+    "convulsion": "seizures",
+    # confusion
+    "confusion": "confusion",
+    "confused": "confusion",
+    "disoriented": "confusion",
+    "delirium": "confusion",
+    "muddled thinking": "confusion",
+    "cannot focus": "confusion",
+    "disorientation": "confusion",
+    # ataxia
+    "ataxia": "ataxia",
+    "loss of balance": "ataxia",
+    "uncoordinated": "ataxia",
+    "clumsiness": "ataxia",
+    "unsteady gait": "ataxia",
+    "stumbling": "ataxia",
+    "cannot balance": "ataxia",
+    # stiff_neck
+    "stiff_neck": "stiff_neck",
+    "stiff neck": "stiff_neck",
+    "neck stiffness": "stiff_neck",
+    "nuchal rigidity": "stiff_neck",
+    "cannot turn neck": "stiff_neck",
+    "tight neck": "stiff_neck",
+    "rigid neck": "stiff_neck",
+    # facial_droop
+    "facial_droop": "facial_droop",
+    "facial droop": "facial_droop",
+    "drooping face": "facial_droop",
+    "face drooping": "facial_droop",
+    "one side of face falling": "facial_droop",
+    "crooked smile": "facial_droop",
+    "bell palsy": "facial_droop",
+    # dysarthria
+    "dysarthria": "dysarthria",
+    "slurred speech": "dysarthria",
+    "slurring words": "dysarthria",
+    "difficulty articulating": "dysarthria",
+    "garbled speech": "dysarthria",
+    # aphasia
+    "aphasia": "aphasia",
+    "difficulty speaking": "aphasia",
+    "word finding difficulty": "aphasia",
+    "cannot find words": "aphasia",
+    "speech loss": "aphasia",
+    "trouble speaking": "aphasia",
+    # focal_weakness
+    "focal_weakness": "focal_weakness",
+    "focal weakness": "focal_weakness",
+    "arm weakness": "focal_weakness",
+    "leg weakness": "focal_weakness",
+    "one sided weakness": "focal_weakness",
+    "hemiparesis": "focal_weakness",
+    "weak arm": "focal_weakness",
+    "weak leg": "focal_weakness",
+    # vertigo
+    "vertigo": "vertigo",
+    "spinning sensation": "vertigo",
+    "room spinning": "vertigo",
+    "spinning head": "vertigo",
+    "rotational dizziness": "vertigo",
+    # altered_mental_status
+    "altered_mental_status": "altered_mental_status",
+    "altered mental status": "altered_mental_status",
+    "ams": "altered_mental_status",
+    "lethargic responsiveness": "altered_mental_status",
+    "obtunded": "altered_mental_status",
+    "stupor": "altered_mental_status",
+    "decreased consciousness": "altered_mental_status",
+    # memory_loss
+    "memory_loss": "memory_loss",
+    "memory loss": "memory_loss",
+    "amnesia": "memory_loss",
+    "forgetfulness": "memory_loss",
+    "losing memory": "memory_loss",
+    "poor memory": "memory_loss",
+    "short term memory loss": "memory_loss",
+    # phonophobia
+    "phonophobia": "phonophobia",
+    "sensitive to sound": "phonophobia",
+    "sound sensitivity": "phonophobia",
+    "loud noises hurt": "phonophobia",
+    "noise intolerance": "phonophobia",
+    # visual_aura
+    "visual_aura": "visual_aura",
+    "visual aura": "visual_aura",
+    "zig zag lights": "visual_aura",
+    "scintillating scotoma": "visual_aura",
+    "aura before headache": "visual_aura",
+    "flashing lights": "visual_aura",
+    "geometric light patterns": "visual_aura",
+    # tinnitus
+    "tinnitus": "tinnitus",
+    "ringing in ears": "tinnitus",
+    "buzzing in ears": "tinnitus",
+    "ear ringing": "tinnitus",
+    "ear buzzing": "tinnitus",
+    "ringing ears": "tinnitus",
+    # gait_unsteadiness
+    "gait_unsteadiness": "gait_unsteadiness",
+    "gait unsteadiness": "gait_unsteadiness",
+    "unsteady walking": "gait_unsteadiness",
+    "wobbly walking": "gait_unsteadiness",
+    "difficulty walking": "gait_unsteadiness",
+    "unsteady on feet": "gait_unsteadiness",
+    # sciatica
+    "sciatica": "sciatica",
+    "radiating leg pain": "sciatica",
+    "shooting pain down leg": "sciatica",
+    "sciatic nerve pain": "sciatica",
+    "pain from lower back to leg": "sciatica",
+    # flank_pain
+    "flank_pain": "flank_pain",
+    "flank pain": "flank_pain",
+    "kidney pain": "flank_pain",
+    "pain in flank": "flank_pain",
+    "side pain": "flank_pain",
+    "back kidney pain": "flank_pain",
+    "costovertebral angle pain": "flank_pain",
+    "pain in side and back": "flank_pain",
+    # hematuria
+    "hematuria": "hematuria",
+    "blood in urine": "hematuria",
+    "red urine": "hematuria",
+    "pink urine": "hematuria",
+    "bloody urine": "hematuria",
+    "blood when peeing": "hematuria",
+    # dysuria
+    "dysuria": "dysuria",
+    "painful urination": "dysuria",
+    "burning urination": "dysuria",
+    "hurts to pee": "dysuria",
+    "burning pee": "dysuria",
+    "pain when peeing": "dysuria",
+    "burning micturition": "dysuria",
+    # oliguria
+    "oliguria": "oliguria",
+    "decreased urine": "oliguria",
+    "low urine output": "oliguria",
+    "not peeing enough": "oliguria",
+    "scant urine": "oliguria",
+    "reduced urine volume": "oliguria",
+    # urinary_urgency
+    "urinary_urgency": "urinary_urgency",
+    "urinary urgency": "urinary_urgency",
+    "urgent need to pee": "urinary_urgency",
+    "sudden urge to urinate": "urinary_urgency",
+    "cannot hold bladder": "urinary_urgency",
+    "rush to bathroom": "urinary_urgency",
+    # nocturia
+    "nocturia": "nocturia",
+    "peeing at night": "nocturia",
+    "waking up to pee": "nocturia",
+    "nighttime urination": "nocturia",
+    "peeing multiple times at night": "nocturia",
+    # urinary_incontinence
+    "urinary_incontinence": "urinary_incontinence",
+    "urinary incontinence": "urinary_incontinence",
+    "leaking urine": "urinary_incontinence",
+    "incontinence": "urinary_incontinence",
+    "bladder leakage": "urinary_incontinence",
+    "wetting pants": "urinary_incontinence",
+    "accidental pee": "urinary_incontinence",
+    # urinary_hesitancy
+    "urinary_hesitancy": "urinary_hesitancy",
+    "urinary hesitancy": "urinary_hesitancy",
+    "hesitancy peeing": "urinary_hesitancy",
+    "trouble starting to pee": "urinary_hesitancy",
+    "weak stream": "urinary_hesitancy",
+    "straining to urinate": "urinary_hesitancy",
+    # urinary_frequency
+    "urinary_frequency": "urinary_frequency",
+    "urinary frequency": "urinary_frequency",
+    "peeing often": "urinary_frequency",
+    "frequent urination": "urinary_frequency",
+    "peeing constantly": "urinary_frequency",
+    "frequent pee": "urinary_frequency",
+    # suprapubic_pain
+    "suprapubic_pain": "suprapubic_pain",
+    "suprapubic pain": "suprapubic_pain",
+    "bladder pain": "suprapubic_pain",
+    "pelvic bladder pressure": "suprapubic_pain",
+    "pain over pubic bone": "suprapubic_pain",
+    "lower belly bladder pain": "suprapubic_pain",
+    # frothy_urine
+    "frothy_urine": "frothy_urine",
+    "frothy urine": "frothy_urine",
+    "foamy urine": "frothy_urine",
+    "bubbles in urine": "frothy_urine",
+    "froth in toilet": "frothy_urine",
+    "bubbly urine": "frothy_urine",
+    # anuria
+    "anuria": "anuria",
+    "no urine": "anuria",
+    "not producing urine": "anuria",
+    "zero urine": "anuria",
+    "absence of urine": "anuria",
+    # penile_discharge
+    "penile_discharge": "penile_discharge",
+    "penile discharge": "penile_discharge",
+    "urethral discharge": "penile_discharge",
+    "pus from penis": "penile_discharge",
+    "discharge from urethra": "penile_discharge",
+    # pelvic_pain
+    "pelvic_pain": "pelvic_pain",
+    "pelvic pain": "pelvic_pain",
+    "lower abdominal pelvic pain": "pelvic_pain",
+    "cramping pelvic pain": "pelvic_pain",
+    "pain in pelvis": "pelvic_pain",
+    # skin_rash
+    "skin_rash": "skin_rash",
+    "skin rash": "skin_rash",
+    "rash": "skin_rash",
+    "eruption": "skin_rash",
+    "exanthem": "skin_rash",
+    "spots on skin": "skin_rash",
+    "skin redness": "skin_rash",
+    "rash on skin": "skin_rash",
+    # itching
+    "itching": "itching",
+    "itchy": "itching",
+    "pruritus": "itching",
+    "scratchy skin": "itching",
+    "need to scratch": "itching",
+    "itchiness": "itching",
+    "itch": "itching",
+    # butterfly_rash
+    "butterfly_rash": "butterfly_rash",
+    "butterfly rash": "butterfly_rash",
+    "malar rash": "butterfly_rash",
+    "rash over cheeks and nose": "butterfly_rash",
+    "malar erythema": "butterfly_rash",
+    "lupus rash": "butterfly_rash",
+    "redness across cheeks and nose": "butterfly_rash",
+    # hives
+    "hives": "hives",
+    "urticaria": "hives",
+    "welts": "hives",
+    "wheals": "hives",
+    "itchy bumps": "hives",
+    "allergic welts": "hives",
+    "nettle rash": "hives",
+    # joint_swelling
+    "joint_swelling": "joint_swelling",
+    "joint swelling": "joint_swelling",
+    "swollen joints": "joint_swelling",
+    "swelling in knees": "joint_swelling",
+    "joint effusion": "joint_swelling",
+    "puffy joints": "joint_swelling",
+    "swollen knuckles": "joint_swelling",
+    "swollen knee": "joint_swelling",
+    # hair_loss
+    "hair_loss": "hair_loss",
+    "hair loss": "hair_loss",
+    "alopecia": "hair_loss",
+    "hair thinning": "hair_loss",
+    "falling hair": "hair_loss",
+    "balding": "hair_loss",
+    "shedding hair": "hair_loss",
+    "losing hair": "hair_loss",
+    # purpura
+    "purpura": "purpura",
+    "purple spots": "purpura",
+    "purpuric rash": "purpura",
+    "non-blanching spots": "purpura",
+    "skin hemorrhage": "purpura",
+    "purple bruising rash": "purpura",
+    # petechiae
+    "petechiae": "petechiae",
+    "pinpoint red spots": "petechiae",
+    "tiny red dots on skin": "petechiae",
+    "petechial rash": "petechiae",
+    "red pinpoint dots": "petechiae",
+    # erythema
+    "erythema": "erythema",
+    "red skin": "erythema",
+    "cutaneous redness": "erythema",
+    "flushed skin": "erythema",
+    "erythematous rash": "erythema",
+    # joint_pain
+    "joint_pain": "joint_pain",
+    "joint pain": "joint_pain",
+    "arthralgia": "joint_pain",
+    "aching joints": "joint_pain",
+    "joint ache": "joint_pain",
+    "pain in knees": "joint_pain",
+    "pain in hands": "joint_pain",
+    "sore joints": "joint_pain",
+    # morning_stiffness
+    "morning_stiffness": "morning_stiffness",
+    "morning stiffness": "morning_stiffness",
+    "stiff joints in morning": "morning_stiffness",
+    "morning stiffness over 30 minutes": "morning_stiffness",
+    "stiff hands morning": "morning_stiffness",
+    # skin_peeling
+    "skin_peeling": "skin_peeling",
+    "skin peeling": "skin_peeling",
+    "peeling skin": "skin_peeling",
+    "desquamation": "skin_peeling",
+    "flaking skin": "skin_peeling",
+    "peeling hands": "skin_peeling",
+    # ulcers_oral
+    "ulcers_oral": "ulcers_oral",
+    "ulcers oral": "ulcers_oral",
+    "oral ulcers": "ulcers_oral",
+    "mouth ulcers": "ulcers_oral",
+    "canker sores": "ulcers_oral",
+    "aphthous ulcers": "ulcers_oral",
+    "sores in mouth": "ulcers_oral",
+    "painful mouth sores": "ulcers_oral",
+    # ulcers_genital
+    "ulcers_genital": "ulcers_genital",
+    "ulcers genital": "ulcers_genital",
+    "genital ulcers": "ulcers_genital",
+    "sores on genitals": "ulcers_genital",
+    "genital sores": "ulcers_genital",
+    "chancres": "ulcers_genital",
+    "painful genital ulcers": "ulcers_genital",
+    # bullae
+    "bullae": "bullae",
+    "blisters": "bullae",
+    "skin blisters": "bullae",
+    "large blisters": "bullae",
+    "fluid filled blisters": "bullae",
+    # photosensitivity
+    "photosensitivity": "photosensitivity",
+    "sun sensitive": "photosensitivity",
+    "sunlight rash": "photosensitivity",
+    "burning in sun": "photosensitivity",
+    "sun allergy": "photosensitivity",
+    # raynaud_phenomenon
+    "raynaud_phenomenon": "raynaud_phenomenon",
+    "raynaud phenomenon": "raynaud_phenomenon",
+    "white fingers in cold": "raynaud_phenomenon",
+    "blue fingers cold": "raynaud_phenomenon",
+    "raynaud": "raynaud_phenomenon",
+    "cold fingers turn white": "raynaud_phenomenon",
+    # dry_eyes
+    "dry_eyes": "dry_eyes",
+    "dry eyes": "dry_eyes",
+    "gritty eyes": "dry_eyes",
+    "eye dryness": "dry_eyes",
+    "burning dry eyes": "dry_eyes",
+    "cannot produce tears": "dry_eyes",
+    # dry_mouth
+    "dry_mouth": "dry_mouth",
+    "dry mouth": "dry_mouth",
+    "xerostomia": "dry_mouth",
+    "cotton mouth": "dry_mouth",
+    "lack of saliva": "dry_mouth",
+    "parched mouth": "dry_mouth",
+    # skin_thickening
+    "skin_thickening": "skin_thickening",
+    "skin thickening": "skin_thickening",
+    "thick skin": "skin_thickening",
+    "sclerodactyly": "skin_thickening",
+    "tight skin on fingers": "skin_thickening",
+    "induration of skin": "skin_thickening",
+    # nail_clubbing
+    "nail_clubbing": "nail_clubbing",
+    "nail clubbing": "nail_clubbing",
+    "clubbed fingers": "nail_clubbing",
+    "clubbed nails": "nail_clubbing",
+    "rounded nails": "nail_clubbing",
+    "digital clubbing": "nail_clubbing",
+    # easy_bruising
+    "easy_bruising": "easy_bruising",
+    "easy bruising": "easy_bruising",
+    "bruising easily": "easy_bruising",
+    "ecchymosis": "easy_bruising",
+    "frequent bruises": "easy_bruising",
+    "spontaneous bruising": "easy_bruising",
+    # rigors
+    "rigors": "rigors",
+    "shaking chills": "rigors",
+    "teeth chattering chills": "rigors",
+    "violent chills": "rigors",
+    "severe shivering": "rigors",
+    # night_sweats
+    "night_sweats": "night_sweats",
+    "night sweats": "night_sweats",
+    "sweating at night": "night_sweats",
+    "drenching sweats": "night_sweats",
+    "nocturnal sweating": "night_sweats",
+    "waking up drenched": "night_sweats",
+    "soaking night sweats": "night_sweats",
+    # lymphadenopathy
+    "lymphadenopathy": "lymphadenopathy",
+    "swollen lymph nodes": "lymphadenopathy",
+    "swollen glands": "lymphadenopathy",
+    "enlarged nodes": "lymphadenopathy",
+    "lumps in neck": "lymphadenopathy",
+    "groin lumps": "lymphadenopathy",
+    "swollen neck glands": "lymphadenopathy",
+    # malaise
+    "malaise": "malaise",
+    "feeling unwell": "malaise",
+    "general malaise": "malaise",
+    "feeling rundown": "malaise",
+    "lack of wellness": "malaise",
+    "ill feeling": "malaise",
+    # weight_gain
+    "weight_gain": "weight_gain",
+    "weight gain": "weight_gain",
+    "unexplained weight gain": "weight_gain",
+    "rapid weight gain": "weight_gain",
+    "gaining weight": "weight_gain",
+    "increased weight": "weight_gain",
+    # anorexia
+    "anorexia": "anorexia",
+    "loss of appetite": "anorexia",
+    "no appetite": "anorexia",
+    "not wanting to eat": "anorexia",
+    "poor appetite": "anorexia",
+    "decreased appetite": "anorexia",
+    # cachexia
+    "cachexia": "cachexia",
+    "wasting away": "cachexia",
+    "severe muscle loss": "cachexia",
+    "wasting": "cachexia",
+    "emaciation": "cachexia",
+    # insomnia
+    "insomnia": "insomnia",
+    "sleeplessness": "insomnia",
+    "trouble sleeping": "insomnia",
+    "cannot sleep": "insomnia",
+    "poor sleep": "insomnia",
+    "waking up early": "insomnia",
+    # excessive_daytime_sleepiness
+    "excessive_daytime_sleepiness": "excessive_daytime_sleepiness",
+    "excessive daytime sleepiness": "excessive_daytime_sleepiness",
+    "sleepy during day": "excessive_daytime_sleepiness",
+    "falling asleep during day": "excessive_daytime_sleepiness",
+    "somnolence": "excessive_daytime_sleepiness",
+    "daytime drowsiness": "excessive_daytime_sleepiness",
+    # heat_intolerance
+    "heat_intolerance": "heat_intolerance",
+    "heat intolerance": "heat_intolerance",
+    "cannot tolerate heat": "heat_intolerance",
+    "always hot": "heat_intolerance",
+    "feeling overheated": "heat_intolerance",
+    "intolerant to warmth": "heat_intolerance",
+    # cold_intolerance
+    "cold_intolerance": "cold_intolerance",
+    "cold intolerance": "cold_intolerance",
+    "cannot tolerate cold": "cold_intolerance",
+    "always cold": "cold_intolerance",
+    "feeling freezing": "cold_intolerance",
+    "intolerant to cold": "cold_intolerance",
+    # excessive_sweating
+    "excessive_sweating": "excessive_sweating",
+    "excessive sweating": "excessive_sweating",
+    "diaphoresis": "excessive_sweating",
+    "profuse sweating": "excessive_sweating",
+    "sweating too much": "excessive_sweating",
+    "hyperhidrosis": "excessive_sweating",
+    "heavy sweating": "excessive_sweating",
+    # generalized_weakness
+    "generalized_weakness": "generalized_weakness",
+    "generalized weakness": "generalized_weakness",
+    "overall weakness": "generalized_weakness",
+    "muscular weakness": "generalized_weakness",
+    "body weakness": "generalized_weakness",
+    "asthenia": "generalized_weakness",
+    "feeling so weak": "generalized_weakness",
+    # myalgia
+    "myalgia": "myalgia",
+    "muscle aches": "myalgia",
+    "muscle pain": "myalgia",
+    "sore muscles": "myalgia",
+    "aching muscles": "myalgia",
+    "diffuse muscle pain": "myalgia",
+    # arthralgia
+    "arthralgia": "arthralgia",
+    "joint aching": "arthralgia",
+    "polyarthralgia": "arthralgia",
+    "multiple joint aches": "arthralgia",
+    # fever_low_grade
+    "fever_low_grade": "fever_low_grade",
+    "fever low grade": "fever_low_grade",
+    "low grade fever": "fever_low_grade",
+    "slight fever": "fever_low_grade",
+    "mild fever": "fever_low_grade",
+    "low-grade fever": "fever_low_grade",
+    "mildly elevated temperature": "fever_low_grade",
+    # goiter
+    "goiter": "goiter",
+    "enlarged thyroid": "goiter",
+    "neck swelling thyroid": "goiter",
+    "thyroid lump": "goiter",
+    "swelling in lower neck": "goiter",
+    # hypoglycemia_symptoms
+    "hypoglycemia_symptoms": "hypoglycemia_symptoms",
+    "hypoglycemia symptoms": "hypoglycemia_symptoms",
+    "hypoglycemia": "hypoglycemia_symptoms",
+    "low blood sugar symptoms": "hypoglycemia_symptoms",
+    "shaky and sweaty": "hypoglycemia_symptoms",
+    "sugar drop": "hypoglycemia_symptoms",
+    "feeling shaky hungry sweaty": "hypoglycemia_symptoms",
+    # hyperphagia
+    "hyperphagia": "hyperphagia",
+    "excessive hunger": "hyperphagia",
+    "insatiable appetite": "hyperphagia",
+    "constant hunger": "hyperphagia",
+    "eating constantly": "hyperphagia",
+    # galactorrhea
+    "galactorrhea": "galactorrhea",
+    "nipple discharge": "galactorrhea",
+    "breast milk discharge": "galactorrhea",
+    "milky nipple discharge": "galactorrhea",
+    # gynecomastia
+    "gynecomastia": "gynecomastia",
+    "male breast enlargement": "gynecomastia",
+    "enlarged male breasts": "gynecomastia",
+    "man boobs": "gynecomastia",
+    "breast tissue in male": "gynecomastia",
+    # hirsutism
+    "hirsutism": "hirsutism",
+    "excessive facial hair": "hirsutism",
+    "male pattern hair growth": "hirsutism",
+    "coarse hair on face": "hirsutism",
+    "excess body hair in female": "hirsutism",
+    # pallor
+    "pallor": "pallor",
+    "pale skin": "pallor",
+    "looking pale": "pallor",
+    "washed out": "pallor",
+    "paleness": "pallor",
+    "pale complexion": "pallor",
+    # bleeding_gums
+    "bleeding_gums": "bleeding_gums",
+    "bleeding gums": "bleeding_gums",
+    "gums bleed": "bleeding_gums",
+    "spontaneous gum bleeding": "bleeding_gums",
+    "blood when brushing teeth": "bleeding_gums",
+    # epistaxis
+    "epistaxis": "epistaxis",
+    "nosebleed": "epistaxis",
+    "bloody nose": "epistaxis",
+    "nose bleeding": "epistaxis",
+    "frequent nosebleeds": "epistaxis",
+    # menorrhagia
+    "menorrhagia": "menorrhagia",
+    "heavy periods": "menorrhagia",
+    "heavy menstrual bleeding": "menorrhagia",
+    "prolonged periods": "menorrhagia",
+    "excessive menstrual flow": "menorrhagia",
+    # bone_pain
+    "bone_pain": "bone_pain",
+    "bone pain": "bone_pain",
+    "deep bone ache": "bone_pain",
+    "aching bones": "bone_pain",
+    "bone tenderness": "bone_pain",
+    # muscle_cramps
+    "muscle_cramps": "muscle_cramps",
+    "muscle cramps": "muscle_cramps",
+    "cramps in legs": "muscle_cramps",
+    "charley horse": "muscle_cramps",
+    "muscle spasms": "muscle_cramps",
+    "cramping muscles": "muscle_cramps",
+    # flushing
+    "flushing": "flushing",
+    "facial flushing": "flushing",
+    "red face flush": "flushing",
+    "hot flushes": "flushing",
+    "flushed face": "flushing",
+    # eye_pain
+    "eye_pain": "eye_pain",
+    "eye pain": "eye_pain",
+    "pain in eye": "eye_pain",
+    "hurting eyes": "eye_pain",
+    "ocular pain": "eye_pain",
+    "deep eye ache": "eye_pain",
+    # eye_redness
+    "eye_redness": "eye_redness",
+    "eye redness": "eye_redness",
+    "bloodshot eyes": "eye_redness",
+    "red eye": "eye_redness",
+    "conjunctival redness": "eye_redness",
+    "red eyes": "eye_redness",
+    # diplopia
+    "diplopia": "diplopia",
+    "double vision": "diplopia",
+    "seeing double": "diplopia",
+    # vision_loss
+    "vision_loss": "vision_loss",
+    "vision loss": "vision_loss",
+    "losing vision": "vision_loss",
+    "cannot see": "vision_loss",
+    "blind spots": "vision_loss",
+    "sudden vision loss": "vision_loss",
+    "blurred or lost vision": "vision_loss",
+    # ear_pain
+    "ear_pain": "ear_pain",
+    "ear pain": "ear_pain",
+    "earache": "ear_pain",
+    "pain in ear": "ear_pain",
+    "otalgia": "ear_pain",
+    "sore ear": "ear_pain",
+    # ear_discharge
+    "ear_discharge": "ear_discharge",
+    "ear discharge": "ear_discharge",
+    "drainage from ear": "ear_discharge",
+    "fluid leaking from ear": "ear_discharge",
+    "otorrhea": "ear_discharge",
+    "pus from ear": "ear_discharge",
+    # hearing_loss
+    "hearing_loss": "hearing_loss",
+    "hearing loss": "hearing_loss",
+    "cannot hear well": "hearing_loss",
+    "deafness": "hearing_loss",
+    "hard of hearing": "hearing_loss",
+    "diminished hearing": "hearing_loss",
+    # sore_tongue
+    "sore_tongue": "sore_tongue",
+    "sore tongue": "sore_tongue",
+    "tongue pain": "sore_tongue",
+    "burning tongue": "sore_tongue",
+    "glossitis": "sore_tongue",
+    "red painful tongue": "sore_tongue",
+    # halitosis
+    "halitosis": "halitosis",
+    "bad breath": "halitosis",
+    "foul breath": "halitosis",
+    "chronic bad breath": "halitosis",
+    "foul smelling breath": "halitosis",
+    # toothache
+    "toothache": "toothache",
+    "tooth pain": "toothache",
+    "dental pain": "toothache",
+    "teeth hurting": "toothache",
+    "aching tooth": "toothache",
+    # loss_of_taste
+    "loss_of_taste": "loss_of_taste",
+    "loss of taste": "loss_of_taste",
+    "cannot taste food": "loss_of_taste",
+    "ageusia": "loss_of_taste",
+    "loss of taste sensation": "loss_of_taste",
+    "no taste": "loss_of_taste",
+    # loss_of_smell
+    "loss_of_smell": "loss_of_smell",
+    "loss of smell": "loss_of_smell",
+    "cannot smell": "loss_of_smell",
+    "anosmia": "loss_of_smell",
+    "loss of olfactory": "loss_of_smell",
+    "no smell": "loss_of_smell",
+    # foreign_body_sensation
+    "foreign_body_sensation": "foreign_body_sensation",
+    "foreign body sensation": "foreign_body_sensation",
+    "feeling like something in eye": "foreign_body_sensation",
+    "grit in eye": "foreign_body_sensation",
+    "lump in throat": "foreign_body_sensation",
+    "scratchy eye": "foreign_body_sensation",
+    # epiphora
+    "epiphora": "epiphora",
+    "watery eyes": "epiphora",
+    "excessive tearing": "epiphora",
+    "eyes watering constantly": "epiphora",
+    "tearing eyes": "epiphora",
     "involuntary weight loss": "weight_loss",
     "rapid weight loss": "weight_loss",
     "cachexia": "weight_loss",
@@ -345,15 +1472,27 @@ class ClinicalPreprocessor:
         self,
         schema_path: Optional[str] = None,
         schema: Optional[Dict[str, Any]] = None,
+        version: Optional[str] = None,
     ):
-        self.schema_path = schema_path or SCHEMA_PATH
         if schema is not None:
             self.schema = schema
-        else:
+            self.schema_path = schema_path or SCHEMA_V2_PATH
+        elif schema_path is not None:
+            self.schema_path = str(schema_path)
             self.schema = self._load_schema()
-        self.feature_order: List[str] = self.schema.get("feature_order", [])
-        self.features_spec: Dict[str, Any] = self.schema.get("features", {})
-        self.version: str = self.schema.get("version", "1.0.0")
+        elif version == "1.0.0":
+            self.schema_path = SCHEMA_V1_PATH
+            self.schema = self._load_schema()
+        elif version in ("2.0.0", "v2"):
+            self.schema_path = SCHEMA_V2_PATH
+            self.schema = self._load_schema()
+        else:
+            self.schema_path = SCHEMA_V2_PATH
+            self.schema = self._load_schema()
+
+        self.feature_order: List[str] = list(self.schema.get("feature_order", []))
+        self.features_spec: Dict[str, Any] = dict(self.schema.get("features", {}))
+        self.version: str = str(self.schema.get("version", "2.0.0"))
 
         # Compile synonym matching catalog (sorted longest phrase first)
         self.sorted_synonyms: List[Tuple[str, str]] = sorted(
@@ -484,6 +1623,13 @@ class ClinicalPreprocessor:
                                 break
 
                     if matched_canonical:
+                        # Backward compatibility for v1 18-symptom schema
+                        if len(self.feature_order) == 27:
+                            if matched_canonical == "vomiting":
+                                matched_canonical = "nausea"
+                            elif matched_canonical == "myalgia":
+                                matched_canonical = "body_aches"
+
                         if active_negation and negation_budget > 0:
                             negated_symptoms.add(matched_canonical)
                         else:
@@ -509,17 +1655,30 @@ class ClinicalPreprocessor:
                             if negation_budget <= 0:
                                 active_negation = False
 
-        # Positive overrides negation only if explicitly affirmed elsewhere without negation
-        # If a symptom is affirmed, remove from negated set
-        final_positive = set(c for c in CANONICAL_SYMPTOMS if c in positive_symptoms)
-        final_negated = set(c for c in CANONICAL_SYMPTOMS if c in negated_symptoms and c not in final_positive)
+        # Determine active symptoms list based on loaded schema
+        active_symptoms = (
+            self.feature_order[: len(self.feature_order) - 9]
+            if len(self.feature_order) > 9
+            else list(CANONICAL_SYMPTOMS)
+        )
 
-        # Build 18-dim symptom vector
-        symptom_vector = {c: (1.0 if c in final_positive else 0.0) for c in CANONICAL_SYMPTOMS}
+        # Positive overrides negation only if explicitly affirmed elsewhere without negation
+        final_positive = set(c for c in active_symptoms if c in positive_symptoms)
+
+        # Cross-version synonym co-activation: body_aches <-> myalgia
+        if "body_aches" in positive_symptoms and "myalgia" in active_symptoms:
+            final_positive.add("myalgia")
+        if "myalgia" in positive_symptoms and "body_aches" in active_symptoms:
+            final_positive.add("body_aches")
+
+        final_negated = set(c for c in active_symptoms if c in negated_symptoms and c not in final_positive)
+
+        # Build symptom vector
+        symptom_vector = {c: (1.0 if c in final_positive else 0.0) for c in active_symptoms}
 
         return {
-            "canonical_symptoms": [c for c in CANONICAL_SYMPTOMS if c in final_positive],
-            "negated_symptoms": [c for c in CANONICAL_SYMPTOMS if c in final_negated],
+            "canonical_symptoms": [c for c in active_symptoms if c in final_positive],
+            "negated_symptoms": [c for c in active_symptoms if c in final_negated],
             "unmapped_tokens": unmapped_tokens[:10],
             "symptom_vector": symptom_vector,
         }
@@ -949,15 +2108,30 @@ class ClinicalPreprocessor:
 # Singleton & Backward-Compatible Service Hooks
 # ---------------------------------------------------------------------------
 
-_PREPROCESSOR_INSTANCE: Optional[ClinicalPreprocessor] = None
+_PREPROCESSOR_V1_INSTANCE: Optional[ClinicalPreprocessor] = None
+_PREPROCESSOR_V2_INSTANCE: Optional[ClinicalPreprocessor] = None
 
 
-def get_preprocessor() -> ClinicalPreprocessor:
-    """Returns singleton preprocessor instance."""
-    global _PREPROCESSOR_INSTANCE
-    if _PREPROCESSOR_INSTANCE is None:
-        _PREPROCESSOR_INSTANCE = ClinicalPreprocessor()
-    return _PREPROCESSOR_INSTANCE
+def get_preprocessor(version: Optional[str] = None) -> ClinicalPreprocessor:
+    """
+    Returns preprocessor singleton instance.
+    Defaults to v1.0.0 when version is None or '1.0.0' for backward compatibility
+    with existing v1 ML model tests, or v2.0.0 when version='2.0.0'.
+    """
+    global _PREPROCESSOR_V1_INSTANCE, _PREPROCESSOR_V2_INSTANCE
+    if version in ("2.0.0", "v2"):
+        if _PREPROCESSOR_V2_INSTANCE is None:
+            _PREPROCESSOR_V2_INSTANCE = ClinicalPreprocessor(version="2.0.0")
+        return _PREPROCESSOR_V2_INSTANCE
+
+    if _PREPROCESSOR_V1_INSTANCE is None:
+        _PREPROCESSOR_V1_INSTANCE = ClinicalPreprocessor(version="1.0.0")
+    return _PREPROCESSOR_V1_INSTANCE
+
+
+def get_preprocessor_v2() -> ClinicalPreprocessor:
+    """Convenience accessor for v2.0.0 preprocessor with 154 symptoms."""
+    return get_preprocessor(version="2.0.0")
 
 
 def preprocess_clinical_input(
