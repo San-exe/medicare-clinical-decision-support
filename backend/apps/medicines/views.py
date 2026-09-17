@@ -172,3 +172,69 @@ class OpenFDAInteractionsView(APIView):
         interactions_data = openfda_service.check_interactions(drugs)
         return Response(interactions_data, status=status.HTTP_200_OK)
 
+
+class MedicineInteractionView(APIView):
+    """
+    POST /api/v1/medicines/interactions/
+    Unified medicine interaction analysis endpoint supporting:
+    1. Explicit list of medication names: {"drugs": ["warfarin", "aspirin"]}
+    2. Single queried drug evaluated against patient's active prescriptions:
+       {"queried_drug": "aspirin", "patient_id": 123}
+    3. Custom current medications list:
+       {"queried_drug": "aspirin", "current_medications": ["warfarin"]}
+    Enforces doctor-patient authorization boundary.
+    """
+    permission_classes = [IsAuthenticatedUser]
+
+    def post(self, request):
+        data = request.data
+        user = request.user
+        drugs = data.get("drugs")
+        queried_drug = data.get("queried_drug")
+        current_medications = data.get("current_medications")
+        patient_id = data.get("patient_id")
+
+        target_patient = None
+        if patient_id:
+            try:
+                target_patient = User.objects.get(id=patient_id, role=User.Roles.PATIENT)
+            except User.DoesNotExist:
+                raise NotFound("Patient not found.")
+
+            if user.role == User.Roles.PATIENT and target_patient != user:
+                raise PermissionDenied("Patients cannot access another patient's medication records.")
+            elif user.role == User.Roles.DOCTOR and not doctor_can_access_patient(user, target_patient):
+                raise PermissionDenied("Doctor does not have active clinical authorization for this patient.")
+        elif user.role == User.Roles.PATIENT and queried_drug and not drugs:
+            target_patient = user
+
+        if not drugs and not queried_drug:
+            raise ValidationError("Either 'drugs' (list) or 'queried_drug' (string) must be supplied.")
+
+        from .services.interaction_service import interaction_service
+        result = interaction_service.evaluate_interactions(
+            drugs=drugs,
+            queried_drug=queried_drug,
+            patient_user=target_patient,
+            current_medications=current_medications,
+        )
+
+        if target_patient:
+            from apps.audit_logs.services import log_audit_event
+            from apps.audit_logs.models import AuditLog
+            log_audit_event(
+                user=user,
+                action=AuditLog.Actions.RECORD_UPDATE,
+                resource_type="MedicationInteractions",
+                resource_id=target_patient.id,
+                request=request,
+                metadata={
+                    "patient_id": target_patient.id,
+                    "drugs_count": len(result.get("drugs_analyzed", [])),
+                    "interactions_count": result.get("total_interactions", 0),
+                },
+            )
+
+        return Response(result, status=status.HTTP_200_OK)
+
+

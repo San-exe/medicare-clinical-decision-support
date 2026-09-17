@@ -232,7 +232,8 @@ class MedicalRecordAnalyzeView(APIView):
             content = ""
 
         title = lab_report.title if lab_report else (med_record.title if med_record else "")
-        analysis = parse_report_content(content, title=title)
+        file_type = lab_report.file_type if lab_report else ""
+        analysis = parse_report_content(content, title=title, file_type=file_type)
 
         # Update lab report fields and create LabResults if it's a LabReport
         if lab_report:
@@ -277,7 +278,10 @@ class MedicalRecordAnalyzeView(APIView):
                 "abnormal_flags_count": analysis["abnormal_flags_count"],
                 "critical_flags_count": analysis["critical_flags_count"],
                 "summary": analysis["summary"],
+                "ocr_status": analysis.get("ocr_status", "not_applicable"),
+                "confidence": analysis.get("confidence", "high"),
             },
             status=status.HTTP_200_OK,
         )
+
 

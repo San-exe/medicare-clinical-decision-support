@@ -1,35 +1,147 @@
+import io
+import logging
 import re
-from typing import Union, List, Dict, Any, Optional
+import zlib
+from typing import Union, List, Dict, Any, Optional, Tuple
+
+logger = logging.getLogger(__name__)
 
 
-def extract_text_from_stream(content: Union[str, bytes]) -> str:
+def _clean_pdf_string(data: bytes) -> str:
+    """Decodes PDF escaped string literals."""
+    try:
+        text = data.decode("latin1")
+        text = text.replace(r"\n", "\n").replace(r"\r", "\r").replace(r"\t", "\t")
+        text = text.replace(r"\(", "(").replace(r"\)", ")").replace(r"\\", "\\")
+        return text.strip()
+    except Exception:
+        return ""
+
+
+def _extract_text_from_pdf_bytes(content: bytes) -> str:
     """
-    Extracts plain text from string, raw bytes, or simple PDF byte streams.
+    Extracts plain text from PDF stream by decompressing FlateDecode streams
+    and reading text operators (Tj, TJ, ', \").
+    """
+    text_chunks = []
+
+    # 1. Parse PDF stream objects: << ... >> stream ... endstream
+    stream_pattern = re.compile(rb"<<(.*?)>>\s*stream[\r\n]+(.*?)[\r\n]+endstream", re.DOTALL)
+    found_stream = False
+
+    for match in stream_pattern.finditer(content):
+        found_stream = True
+        dict_part = match.group(1)
+        raw_stream = match.group(2)
+
+        decompressed = raw_stream
+        if b"/FlateDecode" in dict_part:
+            try:
+                decompressed = zlib.decompress(raw_stream)
+            except Exception:
+                try:
+                    decompressed = zlib.decompress(raw_stream, -zlib.MAX_WBITS)
+                except Exception:
+                    decompressed = raw_stream
+
+        # Extract literal text strings in Tj, ', "
+        for m in re.finditer(rb"\(((?:\\\(|\\\)|\\[^()]|[^()])*)\)\s*(?:Tj|'|\")", decompressed):
+            cleaned = _clean_pdf_string(m.group(1))
+            if cleaned:
+                text_chunks.append(cleaned)
+
+        # Extract array text elements in TJ (e.g., [(text1) -10 (text2)] TJ)
+        for tj in re.finditer(rb"\[(.*?)\]\s*TJ", decompressed):
+            tj_content = tj.group(1)
+            for m in re.finditer(rb"\(((?:\\\(|\\\)|\\[^()]|[^()])*)\)", tj_content):
+                cleaned = _clean_pdf_string(m.group(1))
+                if cleaned:
+                    text_chunks.append(cleaned)
+
+    # 2. Fallback: uncompressed / literal matches across entire content
+    if not text_chunks:
+        direct_matches = re.findall(rb"\(([^\(\)]*)\)\s*(?:Tj|TJ|\')?", content)
+        for m in direct_matches:
+            try:
+                decoded = m.decode("utf-8", errors="ignore").strip()
+                if decoded and len(decoded) > 1:
+                    text_chunks.append(decoded)
+            except Exception:
+                pass
+
+    # 3. If extracted text is still minimal, extract printable ASCII sequences
+    joined_text = " ".join(text_chunks).strip()
+    if len(joined_text) < 10:
+        printable = re.sub(rb"[^\x20-\x7E\r\n\t]", b" ", content)
+        ascii_candidate = printable.decode("utf-8", errors="ignore").strip()
+        # Filter out PDF syntax markers
+        filtered_lines = [
+            line.strip() for line in ascii_candidate.splitlines()
+            if line.strip() and not line.strip().startswith(("%", "obj", "endobj", "xref", "trailer", "startxref"))
+        ]
+        if filtered_lines:
+            joined_text = "\n".join(filtered_lines)
+
+    # Normalize whitespace
+    joined_text = re.sub(r"[ \t]+", " ", joined_text)
+    return joined_text.strip()
+
+
+def _extract_text_from_image_bytes(content: bytes) -> Tuple[str, str, str]:
+    """
+    Attempts OCR on image bytes using pytesseract / PIL.
+    Returns: (extracted_text, ocr_status, confidence)
+    """
+    try:
+        from PIL import Image
+        img = Image.open(io.BytesIO(content))
+        try:
+            import pytesseract
+            text = pytesseract.image_to_string(img)
+            clean_text = text.strip()
+            if clean_text:
+                return clean_text, "success", "high"
+            return "", "empty", "low"
+        except ImportError:
+            logger.info("OCR engine (pytesseract) is not installed in the environment.")
+            return "", "unavailable", "low"
+        except Exception as e:
+            logger.warning("OCR image processing failed: %s", e)
+            return "", "failed", "low"
+    except Exception as e:
+        logger.warning("Failed to open image for OCR: %s", e)
+        return "", "invalid_image", "low"
+
+
+def extract_text_from_stream(content: Union[str, bytes], file_type: str = "") -> str:
+    """
+    Extracts plain text from string, raw bytes, PDF streams (with FlateDecode support),
+    or image files via OCR when dependencies are available.
     """
     if isinstance(content, str):
         return content
 
     if isinstance(content, bytes):
-        # Check if PDF
-        if content.startswith(b"%PDF"):
-            text_chunks = []
-            # Extract PDF stream text literals (e.g. (text) Tj or /Text (text))
-            matches = re.findall(rb"\(([^\(\)]*)\)\s*(?:Tj|TJ|\')?", content)
-            for m in matches:
-                try:
-                    decoded = m.decode("utf-8", errors="ignore").strip()
-                    if decoded and len(decoded) > 1:
-                        text_chunks.append(decoded)
-                except Exception:
-                    pass
+        # 1. PDF detection
+        if content.startswith(b"%PDF") or file_type.lower() == "pdf":
+            return _extract_text_from_pdf_bytes(content)
 
-            if text_chunks:
-                return " ".join(text_chunks)
+        # 2. Image detection (PNG, JPEG, WebP)
+        is_image = (
+            content.startswith(b"\x89PNG\r\n\x1a\n")
+            or content.startswith(b"\xff\xd8\xff")
+            or (content.startswith(b"RIFF") and b"WEBP" in content[:16])
+            or file_type.lower() in ("png", "jpg", "jpeg", "webp")
+        )
+        if is_image:
+            ocr_text, status, _ = _extract_text_from_image_bytes(content)
+            if ocr_text:
+                return ocr_text
+            # Graceful non-blocking degradation when OCR is not available/returns empty
+            logger.info("Image upload processed; OCR status: %s", status)
+            return ""
 
-            # Fallback: decode printable ASCII
-            printable = re.sub(rb"[^\x20-\x7E\r\n\t]", b" ", content)
-            return printable.decode("utf-8", errors="ignore")
-
+        # 3. Default text decoding
         return content.decode("utf-8", errors="replace")
 
     return str(content)
@@ -125,7 +237,6 @@ def classify_hemoglobin(val: float) -> tuple[str, str]:
 
 def classify_platelets(val: float) -> tuple[str, str]:
     """Classifies Platelet count."""
-    # Normalize if given in thousands (e.g. 250 -> 250,000)
     actual = val * 1000 if val < 1000 else val
     if actual < 50000:
         return "critical", "Severe thrombocytopenia alert."
@@ -138,7 +249,6 @@ def classify_platelets(val: float) -> tuple[str, str]:
 
 def classify_wbc(val: float) -> tuple[str, str]:
     """Classifies WBC count."""
-    # Normalize if given in units (e.g. 8.5 -> 8500 or 8.5)
     actual = val if val < 50 else val / 1000.0
     if actual < 2.0 or actual > 30.0:
         return "critical", "Critical leukopenia/leukocytosis alert."
@@ -160,9 +270,32 @@ def classify_creatinine(val: float) -> tuple[str, str]:
     return "normal", "Serum creatinine within normal renal reference."
 
 
+def classify_potassium(val: float) -> tuple[str, str]:
+    """Classifies Serum Potassium in mmol/L or mEq/L."""
+    if val < 2.8 or val > 6.2:
+        return "critical", "Critical dyskalemia. Cardiac arrhythmia risk."
+    if val < 3.5:
+        return "low", "Hypokalemia."
+    if val > 5.1:
+        return "high", "Hyperkalemia."
+    return "normal", "Potassium within standard reference range."
+
+
+def classify_sodium(val: float) -> tuple[str, str]:
+    """Classifies Serum Sodium in mmol/L or mEq/L."""
+    if val < 120 or val > 158:
+        return "critical", "Critical dysnatremia. Neurologic risk."
+    if val < 135:
+        return "low", "Hyponatremia."
+    if val > 145:
+        return "high", "Hypernatremia."
+    return "normal", "Sodium within standard reference range."
+
+
 def extract_metrics_from_text(text: str) -> List[Dict[str, Any]]:
     """
     Extracts key quantitative metrics and reference range flags from text using regex.
+    Preserves exact keys and format required by LabResult persistence and frontend contracts.
     """
     metrics = []
 
@@ -183,6 +316,8 @@ def extract_metrics_from_text(text: str) -> List[Dict[str, Any]]:
             "reference_range": "90-120 / 60-80",
             "flag": flag,
             "clinical_note": note,
+            "confidence": "high",
+            "source": "pattern_match",
         })
 
     # 2. Glucose / Fasting Blood Sugar
@@ -201,6 +336,8 @@ def extract_metrics_from_text(text: str) -> List[Dict[str, Any]]:
             "reference_range": "70-99",
             "flag": flag,
             "clinical_note": note,
+            "confidence": "high",
+            "source": "pattern_match",
         })
 
     # 3. HbA1c
@@ -219,6 +356,8 @@ def extract_metrics_from_text(text: str) -> List[Dict[str, Any]]:
             "reference_range": "< 5.7",
             "flag": flag,
             "clinical_note": note,
+            "confidence": "high",
+            "source": "pattern_match",
         })
 
     # 4. Total Cholesterol
@@ -237,6 +376,8 @@ def extract_metrics_from_text(text: str) -> List[Dict[str, Any]]:
             "reference_range": "< 200",
             "flag": flag,
             "clinical_note": note,
+            "confidence": "high",
+            "source": "pattern_match",
         })
 
     # 5. LDL Cholesterol
@@ -255,6 +396,8 @@ def extract_metrics_from_text(text: str) -> List[Dict[str, Any]]:
             "reference_range": "< 100",
             "flag": flag,
             "clinical_note": note,
+            "confidence": "high",
+            "source": "pattern_match",
         })
 
     # 6. HDL Cholesterol
@@ -273,6 +416,8 @@ def extract_metrics_from_text(text: str) -> List[Dict[str, Any]]:
             "reference_range": ">= 40",
             "flag": flag,
             "clinical_note": note,
+            "confidence": "high",
+            "source": "pattern_match",
         })
 
     # 7. Triglycerides
@@ -291,6 +436,8 @@ def extract_metrics_from_text(text: str) -> List[Dict[str, Any]]:
             "reference_range": "< 150",
             "flag": flag,
             "clinical_note": note,
+            "confidence": "high",
+            "source": "pattern_match",
         })
 
     # 8. Hemoglobin
@@ -309,6 +456,8 @@ def extract_metrics_from_text(text: str) -> List[Dict[str, Any]]:
             "reference_range": "12.0-17.5",
             "flag": flag,
             "clinical_note": note,
+            "confidence": "high",
+            "source": "pattern_match",
         })
 
     # 9. Platelets
@@ -328,6 +477,8 @@ def extract_metrics_from_text(text: str) -> List[Dict[str, Any]]:
             "reference_range": "150,000-450,000",
             "flag": flag,
             "clinical_note": note,
+            "confidence": "high",
+            "source": "pattern_match",
         })
 
     # 10. White Blood Cells (WBC)
@@ -346,6 +497,8 @@ def extract_metrics_from_text(text: str) -> List[Dict[str, Any]]:
             "reference_range": "4.0-11.0",
             "flag": flag,
             "clinical_note": note,
+            "confidence": "high",
+            "source": "pattern_match",
         })
 
     # 11. Serum Creatinine
@@ -364,17 +517,71 @@ def extract_metrics_from_text(text: str) -> List[Dict[str, Any]]:
             "reference_range": "0.6-1.3",
             "flag": flag,
             "clinical_note": note,
+            "confidence": "high",
+            "source": "pattern_match",
+        })
+
+    # 12. Potassium
+    k_match = re.search(
+        r"(?:serum\s*potassium|potassium|\bk\+?\b)[:\s]*([0-9]+(?:\.[0-9]+)?)\s*(?:mmol\s*/\s*l|meq\s*/\s*l)?",
+        text,
+        re.IGNORECASE,
+    )
+    if k_match:
+        val = float(k_match.group(1))
+        flag, note = classify_potassium(val)
+        metrics.append({
+            "test_name": "Potassium",
+            "value": str(val),
+            "unit": "mmol/L",
+            "reference_range": "3.5-5.1",
+            "flag": flag,
+            "clinical_note": note,
+            "confidence": "high",
+            "source": "pattern_match",
+        })
+
+    # 13. Sodium
+    na_match = re.search(
+        r"(?:serum\s*sodium|sodium|\bna\+?\b)[:\s]*([0-9]{2,3}(?:\.[0-9]+)?)\s*(?:mmol\s*/\s*l|meq\s*/\s*l)?",
+        text,
+        re.IGNORECASE,
+    )
+    if na_match:
+        val = float(na_match.group(1))
+        flag, note = classify_sodium(val)
+        metrics.append({
+            "test_name": "Sodium",
+            "value": str(val),
+            "unit": "mmol/L",
+            "reference_range": "135-145",
+            "flag": flag,
+            "clinical_note": note,
+            "confidence": "high",
+            "source": "pattern_match",
         })
 
     return metrics
 
 
-def parse_report_content(content: Union[str, bytes], title: str = "") -> Dict[str, Any]:
+def parse_report_content(content: Union[str, bytes], title: str = "", file_type: str = "") -> Dict[str, Any]:
     """
-    Main parser entrypoint. Accepts raw text or binary stream, extracts metrics,
-    and returns a structured clinical summary.
+    Main report parsing and clinical analysis pipeline:
+    1. Extracts text from raw bytes (PDF, Image with OCR fallback, or text stream).
+    2. Parses quantitative clinical values and flags abnormal/critical findings.
+    3. Synthesizes a structured clinical interpretation summary.
     """
-    text = extract_text_from_stream(content)
+    ocr_status = "not_applicable"
+    confidence = "high"
+
+    if isinstance(content, bytes):
+        if content.startswith(b"\x89PNG") or content.startswith(b"\xff\xd8\xff") or file_type in ("png", "jpg", "jpeg", "webp"):
+            text, ocr_status, confidence = _extract_text_from_image_bytes(content)
+        else:
+            text = extract_text_from_stream(content, file_type=file_type)
+    else:
+        text = extract_text_from_stream(content)
+
     metrics = extract_metrics_from_text(text)
 
     abnormal_metrics = [m for m in metrics if m["flag"] != "normal"]
@@ -401,4 +608,7 @@ def parse_report_content(content: Union[str, bytes], title: str = "") -> Dict[st
         "abnormal_flags_count": len(abnormal_metrics),
         "critical_flags_count": len(critical_metrics),
         "summary": " ".join(summary_lines),
+        "ocr_status": ocr_status,
+        "confidence": confidence,
     }
+
