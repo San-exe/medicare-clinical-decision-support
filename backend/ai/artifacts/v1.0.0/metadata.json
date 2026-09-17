@@ -1,0 +1,110 @@
+{
+  "model_name": "MediCare-MultiDisease-XGBoost",
+  "version": "1.0.0",
+  "training_timestamp": "2026-09-17T12:53:34.941435+00:00",
+  "dataset_provenance": "synthetic-dev-fallback",
+  "target_classes": [
+    "Acute Gastroenteritis",
+    "Bronchial Asthma",
+    "Common Cold",
+    "Hypertension",
+    "Influenza",
+    "Migraine",
+    "Pneumonia",
+    "Type 2 Diabetes"
+  ],
+  "total_classes": 8,
+  "total_features": 27,
+  "feature_order": [
+    "fever",
+    "cough",
+    "fatigue",
+    "headache",
+    "dyspnea",
+    "chest_pain",
+    "sore_throat",
+    "rhinorrhea",
+    "polyuria",
+    "polydipsia",
+    "dizziness",
+    "nausea",
+    "photophobia",
+    "body_aches",
+    "blurred_vision",
+    "diarrhea",
+    "chills",
+    "weight_loss",
+    "age",
+    "sex",
+    "systolic_bp",
+    "diastolic_bp",
+    "heart_rate",
+    "glucose",
+    "body_temperature",
+    "oxygen_saturation",
+    "bmi"
+  ],
+  "metrics": {
+    "macro_f1": 0.9821,
+    "weighted_f1": 0.9821,
+    "accuracy": 0.9821,
+    "log_loss": 0.0666,
+    "per_class_metrics": {
+      "Acute Gastroenteritis": {
+        "precision": 0.9722,
+        "recall": 1.0,
+        "f1_score": 0.9859,
+        "support": 70
+      },
+      "Bronchial Asthma": {
+        "precision": 0.9583,
+        "recall": 0.9857,
+        "f1_score": 0.9718,
+        "support": 70
+      },
+      "Common Cold": {
+        "precision": 0.9855,
+        "recall": 0.9714,
+        "f1_score": 0.9784,
+        "support": 70
+      },
+      "Hypertension": {
+        "precision": 0.9853,
+        "recall": 0.9571,
+        "f1_score": 0.971,
+        "support": 70
+      },
+      "Influenza": {
+        "precision": 0.9857,
+        "recall": 0.9857,
+        "f1_score": 0.9857,
+        "support": 70
+      },
+      "Migraine": {
+        "precision": 1.0,
+        "recall": 0.9714,
+        "f1_score": 0.9855,
+        "support": 70
+      },
+      "Pneumonia": {
+        "precision": 0.9718,
+        "recall": 0.9857,
+        "f1_score": 0.9787,
+        "support": 70
+      },
+      "Type 2 Diabetes": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 70
+      }
+    }
+  },
+  "training_config": {
+    "n_estimators": 120,
+    "max_depth": 5,
+    "learning_rate": 0.08,
+    "missing_value_handling": "native_directional_split_np_nan",
+    "objective": "multi:softprob"
+  }
+}

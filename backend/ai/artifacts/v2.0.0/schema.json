@@ -1,0 +1,2090 @@
+{
+  "": "http://json-schema.org/draft-07/schema#",
+  "version": "2.0.0",
+  "name": "medicare_clinical_features",
+  "description": "Expanded 163-feature clinical schema (154 symptoms + 9 vitals) for multi-disease inference and Tier 2 Knowledge Base matching.",
+  "metadata": {
+    "total_features": 163,
+    "symptom_features_count": 154,
+    "vital_features_count": 9,
+    "created_at": "2026-09-17"
+  },
+  "feature_order": [
+    "fever",
+    "cough",
+    "fatigue",
+    "headache",
+    "dyspnea",
+    "chest_pain",
+    "sore_throat",
+    "rhinorrhea",
+    "polyuria",
+    "polydipsia",
+    "dizziness",
+    "nausea",
+    "photophobia",
+    "body_aches",
+    "blurred_vision",
+    "diarrhea",
+    "chills",
+    "weight_loss",
+    "abdominal_pain",
+    "jaundice",
+    "dark_urine",
+    "clay_colored_stools",
+    "ascites",
+    "hematemesis",
+    "heartburn",
+    "vomiting",
+    "melena",
+    "hematochezia",
+    "dysphagia",
+    "odynophagia",
+    "early_satiety",
+    "bloating",
+    "flatulence",
+    "constipation",
+    "steatorrhea",
+    "tenesmus",
+    "pruritus_ani",
+    "palpitations",
+    "leg_swelling",
+    "orthopnea",
+    "hemoptysis",
+    "wheezing",
+    "paroxysmal_nocturnal_dyspnea",
+    "syncope",
+    "presyncope",
+    "claudication",
+    "cyanosis",
+    "stridor",
+    "tachypnea",
+    "pleuritic_chest_pain",
+    "sputum_production",
+    "purulent_sputum",
+    "chest_tightness",
+    "nasal_congestion",
+    "hoarseness",
+    "snoring",
+    "tremor",
+    "numbness",
+    "tingling",
+    "seizures",
+    "confusion",
+    "ataxia",
+    "stiff_neck",
+    "facial_droop",
+    "dysarthria",
+    "aphasia",
+    "focal_weakness",
+    "vertigo",
+    "altered_mental_status",
+    "memory_loss",
+    "phonophobia",
+    "visual_aura",
+    "tinnitus",
+    "gait_unsteadiness",
+    "sciatica",
+    "flank_pain",
+    "hematuria",
+    "dysuria",
+    "oliguria",
+    "urinary_urgency",
+    "nocturia",
+    "urinary_incontinence",
+    "urinary_hesitancy",
+    "urinary_frequency",
+    "suprapubic_pain",
+    "frothy_urine",
+    "anuria",
+    "penile_discharge",
+    "pelvic_pain",
+    "skin_rash",
+    "itching",
+    "butterfly_rash",
+    "hives",
+    "joint_swelling",
+    "hair_loss",
+    "purpura",
+    "petechiae",
+    "erythema",
+    "joint_pain",
+    "morning_stiffness",
+    "skin_peeling",
+    "ulcers_oral",
+    "ulcers_genital",
+    "bullae",
+    "photosensitivity",
+    "raynaud_phenomenon",
+    "dry_eyes",
+    "dry_mouth",
+    "skin_thickening",
+    "nail_clubbing",
+    "easy_bruising",
+    "rigors",
+    "night_sweats",
+    "lymphadenopathy",
+    "malaise",
+    "weight_gain",
+    "anorexia",
+    "cachexia",
+    "insomnia",
+    "excessive_daytime_sleepiness",
+    "heat_intolerance",
+    "cold_intolerance",
+    "excessive_sweating",
+    "generalized_weakness",
+    "myalgia",
+    "arthralgia",
+    "fever_low_grade",
+    "goiter",
+    "hypoglycemia_symptoms",
+    "hyperphagia",
+    "galactorrhea",
+    "gynecomastia",
+    "hirsutism",
+    "pallor",
+    "bleeding_gums",
+    "epistaxis",
+    "menorrhagia",
+    "bone_pain",
+    "muscle_cramps",
+    "flushing",
+    "eye_pain",
+    "eye_redness",
+    "diplopia",
+    "vision_loss",
+    "ear_pain",
+    "ear_discharge",
+    "hearing_loss",
+    "sore_tongue",
+    "halitosis",
+    "toothache",
+    "loss_of_taste",
+    "loss_of_smell",
+    "foreign_body_sensation",
+    "epiphora",
+    "age",
+    "sex",
+    "systolic_bp",
+    "diastolic_bp",
+    "heart_rate",
+    "glucose",
+    "body_temperature",
+    "oxygen_saturation",
+    "bmi"
+  ],
+  "features": {
+    "fever": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Fever / Elevated Body Temperature / Pyrexia",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "cough": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Cough / Persistent Coughing / Phlegm",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "fatigue": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Fatigue / Exhaustion / Lethargy / Weakness",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "headache": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Headache / Cephalalgia / Migraine",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "dyspnea": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Shortness of Breath / Breathing Difficulty / Wheezing",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "chest_pain": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Chest Pain / Tightness / Angina / Pressure in Chest",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "sore_throat": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Sore Throat / Throat Pain / Pharyngitis",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "rhinorrhea": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Runny Nose / Nasal Congestion / Sneezing",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "polyuria": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Frequent Urination / Excessive Urination",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "polydipsia": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Excessive Thirst / Extreme Thirst",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "dizziness": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Dizziness / Lightheadedness / Vertigo",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "nausea": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Nausea / Vomiting / Emesis",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "photophobia": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Light Sensitivity / Pain in Bright Light",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "body_aches": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Myalgia / Muscle Pain / Body Aches / Joint Pain",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "blurred_vision": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Blurred / Blurry / Hazy Vision",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "diarrhea": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Diarrhea / Loose Stools / Abdominal Cramps",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "chills": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Chills / Rigors / Shivering",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "weight_loss": {
+      "type": "binary",
+      "category": "symptom",
+      "description": "Unexplained / Involuntary Weight Loss",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "age": {
+      "type": "numeric",
+      "category": "demographic",
+      "description": "Patient Age in Years",
+      "unit": "years",
+      "default_imputation": 45.0,
+      "min_val": 0.0,
+      "max_val": 120.0
+    },
+    "sex": {
+      "type": "numeric",
+      "category": "demographic",
+      "description": "Patient Biological Sex (1.0 = Male, 0.0 = Female, 0.5 = Other/Neutral)",
+      "unit": "encoded",
+      "default_imputation": 0.5,
+      "min_val": 0.0,
+      "max_val": 1.0
+    },
+    "systolic_bp": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Systolic Blood Pressure",
+      "unit": "mmHg",
+      "default_imputation": 120.0,
+      "min_val": 50.0,
+      "max_val": 260.0
+    },
+    "diastolic_bp": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Diastolic Blood Pressure",
+      "unit": "mmHg",
+      "default_imputation": 80.0,
+      "min_val": 30.0,
+      "max_val": 160.0
+    },
+    "heart_rate": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Resting Heart Rate / Pulse",
+      "unit": "bpm",
+      "default_imputation": 72.0,
+      "min_val": 30.0,
+      "max_val": 250.0
+    },
+    "glucose": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Fasting / Random Blood Glucose",
+      "unit": "mg/dL",
+      "default_imputation": 95.0,
+      "min_val": 30.0,
+      "max_val": 600.0
+    },
+    "body_temperature": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Core Body Temperature in Celsius",
+      "unit": "celsius",
+      "default_imputation": 37.0,
+      "min_val": 30.0,
+      "max_val": 45.0
+    },
+    "oxygen_saturation": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Pulse Oximetry Oxygen Saturation (SpO2)",
+      "unit": "percent",
+      "default_imputation": 98.0,
+      "min_val": 50.0,
+      "max_val": 100.0
+    },
+    "bmi": {
+      "type": "numeric",
+      "category": "vital",
+      "description": "Body Mass Index",
+      "unit": "kg/m2",
+      "default_imputation": 24.5,
+      "min_val": 10.0,
+      "max_val": 70.0
+    },
+    "abdominal_pain": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Abdominal pain or stomach ache / cramps",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "jaundice": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Jaundice / Yellowing of skin or sclera",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "dark_urine": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Dark, tea-colored or brown urine",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "clay_colored_stools": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Clay-colored or acholic pale stools",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "ascites": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Ascites / Abdominal fluid retention / distension",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "hematemesis": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Hematemesis / Vomiting blood or coffee-ground emesis",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "heartburn": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Heartburn / Pyrosis / Acid reflux / indigestion",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "vomiting": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Vomiting / Emesis",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "melena": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Melena / Black tarry stools indicative of upper GI bleeding",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "hematochezia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Hematochezia / Fresh red blood in stool",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "dysphagia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Dysphagia / Difficulty swallowing",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "odynophagia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Odynophagia / Painful swallowing",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "early_satiety": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Early satiety / Feeling full quickly",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "bloating": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Abdominal bloating / distension",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "flatulence": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Excessive flatulence or gas",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "constipation": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Constipation / Infrequent or hard bowel movements",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "steatorrhea": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Steatorrhea / Bulky greasy malodorous stools",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "tenesmus": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Tenesmus / Painful spasm with urgent desire to evacuate",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "pruritus_ani": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "GI/Hepatic",
+      "description": "Pruritus ani / Anal itching",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "palpitations": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Palpitations / Awareness of rapid, racing, or irregular heartbeat",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "leg_swelling": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Peripheral edema / Bilateral or unilateral lower extremity leg swelling",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "orthopnea": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Orthopnea / Dyspnea when lying flat",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "hemoptysis": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Hemoptysis / Coughing up blood or blood-tinged sputum",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "wheezing": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Wheezing / High-pitched whistling respiratory sound",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "paroxysmal_nocturnal_dyspnea": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Paroxysmal nocturnal dyspnea waking patient from sleep",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "syncope": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Syncope / Sudden transient loss of consciousness",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "presyncope": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Presyncope / Lightheadedness with sensation of impending faint",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "claudication": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Intermittent claudication / Cramping leg pain with ambulation",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "cyanosis": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Cyanosis / Bluish discoloration of lips, skin, or nail beds",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "stridor": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Stridor / Harsh high-pitched inspiratory sound from upper airway obstruction",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "tachypnea": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Tachypnea / Abnormally rapid breathing rate",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "pleuritic_chest_pain": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Pleuritic chest pain worsening on deep inspiration",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "sputum_production": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Excessive sputum or phlegm production",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "purulent_sputum": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Purulent yellow/green sputum indicative of bacterial infection",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "chest_tightness": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Chest tightness / Sensation of constriction across thorax",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "nasal_congestion": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Nasal congestion / Stuffy nose",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "hoarseness": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Hoarseness / Dysphonia / Raspy voice",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "snoring": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Cardio/Resp",
+      "description": "Habitual loud snoring or nocturnal gasping",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "tremor": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Involuntary rhythmic muscle contraction leading to shaking / tremor",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "numbness": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Numbness / Loss of sensation or hypoesthesia",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "tingling": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Tingling / Paresthesia / Pins and needles sensation",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "seizures": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Seizures / Convulsions / Paroxysmal electrical brain episodes",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "confusion": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Confusion / Acute delirium / Disorientation",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "ataxia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Ataxia / Lack of voluntary coordination of muscle movements",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "stiff_neck": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Stiff neck / Nuchal rigidity / Meningismus",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "facial_droop": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Facial droop / Asymmetry / Bell palsy presentation",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "dysarthria": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Dysarthria / Slurred or impaired motor speech production",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "aphasia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Aphasia / Expressive or receptive language impairment",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "focal_weakness": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Focal motor weakness in specific limb or body region",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "vertigo": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Vertigo / True rotational spinning sensation",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "altered_mental_status": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Altered mental status or fluctuating consciousness",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "memory_loss": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Memory loss / Cognitive decline / Amnesia",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "phonophobia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Phonophobia / Extreme sensitivity to environmental sounds",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "visual_aura": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Visual aura / Scintillating scotoma or geometric light patterns",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "tinnitus": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Tinnitus / Ringing, buzzing, or hissing in ears",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "gait_unsteadiness": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Gait unsteadiness / Balance impairment while walking",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "sciatica": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Neuro",
+      "description": "Sciatica / Radiating neuropathic pain along sciatic nerve",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "flank_pain": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Flank pain / Costovertebral angle tenderness / Kidney pain",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "hematuria": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Hematuria / Gross or microscopic blood in urine",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "dysuria": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Dysuria / Burning or pain during micturition",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "oliguria": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Oliguria / Decreased urine output under 400 mL/day",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "urinary_urgency": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Urinary urgency / Sudden compelling urge to urinate",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "nocturia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Nocturia / Waking multiple times at night to urinate",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "urinary_incontinence": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Urinary incontinence / Involuntary loss of urine",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "urinary_hesitancy": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Urinary hesitancy / Difficulty initiating urine stream",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "urinary_frequency": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Urinary frequency / Need to urinate abnormally frequently",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "suprapubic_pain": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Suprapubic pain / Bladder tenderness",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "frothy_urine": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Frothy or foamy urine indicative of proteinuria",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "anuria": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Anuria / Complete absence of urine output (<100 mL/day)",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "penile_discharge": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Penile or urethral discharge",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "pelvic_pain": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Renal/Uro",
+      "description": "Lower pelvic pain or pressure",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "skin_rash": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Cutaneous eruption / Generalized or localized skin rash",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "itching": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Pruritus / Generalized or localized severe skin itching",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "butterfly_rash": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Malar butterfly rash over cheeks and bridge of nose (SLE hallmark)",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "hives": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Urticaria / Raised erythematous pruritic wheals / hives",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "joint_swelling": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Joint swelling / Effusion / Inflammation of synovium",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "hair_loss": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Alopecia / Accelerated diffuse or patchy scalp hair loss",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "purpura": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Purpura / Non-blanching red or purple petechial skin hemorrhages",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "petechiae": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Petechiae / Pinpoint round non-blanching spots on skin or mucosa",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "erythema": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Cutaneous erythema / Abnormal redness of skin",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "joint_pain": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Arthralgia / Pain within joints without gross effusion",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "morning_stiffness": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Morning joint stiffness lasting greater than 30 minutes",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "skin_peeling": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Desquamation / Peeling or scaling of epidermal skin",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "ulcers_oral": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Aphthous or painful ulcers in oral mucosal cavity",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "ulcers_genital": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Genital ulcerations or mucosal lesions",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "bullae": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Bullae / Large fluid-filled cutaneous blisters",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "photosensitivity": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Photosensitivity / Exaggerated skin response to sunlight",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "raynaud_phenomenon": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Raynaud phenomenon / Triphasic color changes of fingers in cold",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "dry_eyes": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Keratoconjunctivitis sicca / Severe dry grittiness in eyes",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "dry_mouth": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Xerostomia / Severe dryness of oral mucous membranes",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "skin_thickening": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Sclerodactyly / Induration and thickening of dermis",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "nail_clubbing": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Digital nail clubbing / Increased angle between nail bed and fold",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "easy_bruising": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Derm/Immune",
+      "description": "Ecchymosis / Excessive bruising following minor trauma",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "rigors": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Rigors / Shaking chills with profound teeth chattering",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "night_sweats": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Drenching nocturnal diaphoresis requiring clothing change",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "lymphadenopathy": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Lymphadenopathy / Enlarged, palpable cervical/axillary/inguinal nodes",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "malaise": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Malaise / Generalized sensation of profound bodily discomfort",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "weight_gain": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Rapid unexplained weight gain or fluid retention",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "anorexia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Anorexia / Severe loss of appetite",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "cachexia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Cachexia / Severe muscle wasting and profound debility",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "insomnia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Insomnia / Inability to initiate or maintain sleep",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "excessive_daytime_sleepiness": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Excessive daytime sleepiness / Narcolepsy symptoms",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "heat_intolerance": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Heat intolerance / Inability to tolerate warm environments",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "cold_intolerance": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Cold intolerance / Inability to tolerate cool environments",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "excessive_sweating": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Diaphoresis / Inappropriate profuse sweating",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "generalized_weakness": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Asthenia / Generalized loss of muscular strength",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "myalgia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Myalgia / Diffuse muscle soreness or tenderness",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "arthralgia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Arthralgia / Joint aches across multiple articulations",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "fever_low_grade": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "General/Infectious",
+      "description": "Low-grade fever (37.5 - 38.2 C)",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "goiter": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Endocrine/Heme",
+      "description": "Goiter / Visibly enlarged or palpable thyroid gland in neck",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "hypoglycemia_symptoms": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Endocrine/Heme",
+      "description": "Shakiness, sweating, diaphoresis, and anxiety relieved by glucose",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "hyperphagia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Endocrine/Heme",
+      "description": "Hyperphagia / Inordinate persistent hunger",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "galactorrhea": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Endocrine/Heme",
+      "description": "Inappropriate breast milk secretion without lactation",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "gynecomastia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Endocrine/Heme",
+      "description": "Gynecomastia / Palpable enlargement of male glandular breast tissue",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "hirsutism": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Endocrine/Heme",
+      "description": "Hirsutism / Male-pattern coarse terminal hair growth in females",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "pallor": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Endocrine/Heme",
+      "description": "Cutaneous or conjunctival pallor indicative of severe anemia",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "bleeding_gums": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Endocrine/Heme",
+      "description": "Gingival bleeding / Spontaneous bleeding from gums",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "epistaxis": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Endocrine/Heme",
+      "description": "Epistaxis / Spontaneous nosebleeds",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "menorrhagia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Endocrine/Heme",
+      "description": "Menorrhagia / Abnormally heavy or prolonged menstrual bleeding",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "bone_pain": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Endocrine/Heme",
+      "description": "Deep persistent bone pain, notably in axial skeleton or long bones",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "muscle_cramps": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Endocrine/Heme",
+      "description": "Painful involuntary muscle cramps or tetany",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "flushing": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "Endocrine/Heme",
+      "description": "Cutaneous episodic flushing of face, neck, and upper chest",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "eye_pain": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Ocular pain / Deep ache or sharp pain within globe",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "eye_redness": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Conjunctival injection / Bloodshot red eyes",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "diplopia": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Diplopia / Double vision",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "vision_loss": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Partial or total sudden or progressive loss of vision",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "ear_pain": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Otalgia / Ear pain or earache",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "ear_discharge": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Otorrhea / Purulent or serous discharge from ear canal",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "hearing_loss": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Conductive or sensorineural hearing impairment",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "sore_tongue": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Glossitis / Pain, burning, or redness of tongue surface",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "halitosis": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Severe persistent fetid breath odor",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "toothache": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Odontalgia / Dental or periodontal pain",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "loss_of_taste": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Ageusia / Diminished or absent taste sensation",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "loss_of_smell": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Anosmia / Diminished or absent olfactory sensation",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "foreign_body_sensation": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Sensation of foreign particle in eye or throat",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    },
+    "epiphora": {
+      "type": "binary",
+      "category": "symptom",
+      "specialty": "ENT/Eye",
+      "description": "Epiphora / Excessive tearing or watering of eyes",
+      "unit": "boolean",
+      "default_imputation": 0.0,
+      "allowed_values": [
+        0.0,
+        1.0
+      ]
+    }
+  }
+}

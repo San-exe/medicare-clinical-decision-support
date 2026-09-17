@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+
+# Django & Media
+*.log
+*.env
+.env
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Node / Frontend
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Protected Clinical / MIMIC Training Data (PHI Protection)
+backend/ml/data/
+ml/data/
+data/raw/
+data/processed/
+
+# IDE / System
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
