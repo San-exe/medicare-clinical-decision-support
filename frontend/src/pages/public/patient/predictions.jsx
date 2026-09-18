@@ -595,8 +595,15 @@ export default function Predictions() {
       const level = score >= 75 ? "High" : score >= 45 ? "Moderate" : "Low";
 
       let factors = [];
-      if (p.explanation?.shap_analysis?.features) {
-        factors = Object.keys(p.explanation.shap_analysis.features);
+      const shapFeatures = p.explanation?.shap_analysis?.features;
+      if (Array.isArray(shapFeatures)) {
+        factors = shapFeatures
+          .map((feature) =>
+            typeof feature === "string" ? feature : feature?.feature
+          )
+          .filter(Boolean);
+      } else if (shapFeatures && typeof shapFeatures === "object") {
+        factors = Object.keys(shapFeatures);
       } else if (Array.isArray(p.explanation?.top_features)) {
         factors = p.explanation.top_features;
       } else if (Array.isArray(p.input_data?.symptoms)) {

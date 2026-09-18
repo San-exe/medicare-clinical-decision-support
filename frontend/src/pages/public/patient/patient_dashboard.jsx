@@ -38,6 +38,7 @@ import {
 
 import { useAuth } from "../../../_core/hooks/useAuth";
 import patientService from "../../../services/patientService";
+import PatientSidebar from "./sidebar";
 
 
 /* -------------------------------------------------------
@@ -1102,7 +1103,7 @@ export default function PatientDashboard() {
       className={`min-h-screen w-full ${pageClasses}`}
     >
       {/* SIDEBAR — fixed universal width: 255px */}
-      <Sidebar
+      <PatientSidebar
         darkMode={darkMode}
         onLogout={() => setShowLogoutConfirmation(true)}
       />

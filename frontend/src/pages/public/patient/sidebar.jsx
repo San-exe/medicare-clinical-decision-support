@@ -4,8 +4,10 @@ import { Link, useLocation } from "react-router-dom";
 
 import {
   Activity,
+  AlertTriangle,
   Brain,
   ClipboardList,
+  CircleDot,
   FileText,
   Heart,
   Home,
@@ -27,6 +29,8 @@ const ROUTES = {
   symptomAnalysis: "/patient/symptom-analysis",
   predictions: "/patient/predictions",
   aiAssistant: "/patient/ai-assistant",
+  medicineSearch: "/patient/medicine-search",
+  drugInteractions: "/patient/drug-interactions",
   settings: "/patient/settings",
 };
 
@@ -96,6 +100,21 @@ const navSections = [
       },
     ],
   },
+  {
+    title: "MEDICINES",
+    items: [
+      {
+        label: "Medicine Search",
+        icon: CircleDot,
+        route: ROUTES.medicineSearch,
+      },
+      {
+        label: "Drug Interactions",
+        icon: AlertTriangle,
+        route: ROUTES.drugInteractions,
+      },
+    ],
+  },
 ];
 
 function isActivePath(pathname, route) {
@@ -105,7 +124,7 @@ function isActivePath(pathname, route) {
   );
 }
 
-export default function Sidebar({ darkMode = true }) {
+export default function Sidebar({ darkMode = true, onLogout }) {
   const location = useLocation();
 
   return (
@@ -120,7 +139,7 @@ export default function Sidebar({ darkMode = true }) {
           LOGO
       ========================== */}
 
-      <div className="shrink-0 px-7 pt-6 pb-5">
+      <div className="shrink-0 px-7 pt-4 pb-4">
         <Link
           to={ROUTES.dashboard}
           className="flex items-center gap-4"
@@ -150,11 +169,11 @@ export default function Sidebar({ darkMode = true }) {
       ========================== */}
 
       <nav className="min-h-0 flex-1 overflow-hidden px-3">
-        <div className="space-y-3">
+        <div className="space-y-1">
           {navSections.map((section) => (
             <div key={section.title}>
               <div
-                className={`px-4 pb-2 pt-1 text-[12px] font-bold tracking-[0.09em] ${
+                className={`px-4 pb-0.5 pt-1 text-[12px] font-bold tracking-[0.09em] ${
                   darkMode
                     ? "text-slate-200"
                     : "text-slate-700"
@@ -166,7 +185,6 @@ export default function Sidebar({ darkMode = true }) {
               <div className="space-y-1">
                 {section.items.map((item) => {
                   const Icon = item.icon;
-
                   const active = isActivePath(
                     location.pathname,
                     item.route
@@ -176,7 +194,7 @@ export default function Sidebar({ darkMode = true }) {
                     <Link
                       key={item.label}
                       to={item.route}
-                      className={`relative flex h-[40px] w-full items-center gap-4 rounded-lg px-4 text-[15px] transition-all duration-150 ${
+                      className={`relative flex h-[36px] w-full items-center gap-4 rounded-lg px-4 text-[15px] transition-all duration-150 ${
                         active
                           ? darkMode
                             ? "bg-[#0b3027] font-semibold text-white"
@@ -229,7 +247,7 @@ export default function Sidebar({ darkMode = true }) {
 
         <Link
           to={ROUTES.settings}
-          className={`flex h-[40px] w-full items-center gap-4 rounded-lg px-4 text-[15px] transition ${
+          className={`flex h-[36px] w-full items-center gap-4 rounded-lg px-4 text-[15px] transition ${
             isActivePath(
               location.pathname,
               ROUTES.settings
@@ -252,9 +270,27 @@ export default function Sidebar({ darkMode = true }) {
 
         {/* Logout */}
 
-        <Link
-          to="/login"
-          className={`mt-1 flex h-[40px] w-full items-center gap-4 rounded-lg px-4 text-[15px] transition ${
+        {onLogout ? (
+          <button
+            type="button"
+            onClick={onLogout}
+            className={`mt-2 flex h-[36px] w-full items-center gap-4 rounded-lg px-4 text-left text-[15px] transition ${
+              darkMode
+                ? "text-white hover:bg-white/[0.04]"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            <LogIn
+              size={22}
+              strokeWidth={1.8}
+            />
+
+            <span>Logout</span>
+          </button>
+        ) : (
+          <Link
+            to="/login"
+          className={`mt-1 flex h-[36px] w-full items-center gap-4 rounded-lg px-4 text-[15px] transition ${
             darkMode
               ? "text-white hover:bg-white/[0.04]"
               : "text-slate-700 hover:bg-slate-50"
@@ -266,7 +302,8 @@ export default function Sidebar({ darkMode = true }) {
           />
 
           <span>Logout</span>
-        </Link>
+          </Link>
+        )}
       </div>
     </aside>
   );

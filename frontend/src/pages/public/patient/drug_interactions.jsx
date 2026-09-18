@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../../_core/hooks/useAuth";
 import patientService from "../../../services/patientService";
+import PatientSidebar from "./sidebar";
 
 const ROUTES = {
   dashboard: "/patient/dashboard",
@@ -646,9 +647,9 @@ export default function DrugInteractions() {
             : "border-slate-200 bg-white"
         }`}
       >
-        <Sidebar darkMode={darkMode} />
+        <PatientSidebar darkMode={darkMode} />
 
-        <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <main className="ml-[255px] flex min-w-0 flex-1 flex-col overflow-hidden">
           <Header
             darkMode={darkMode}
             setDarkMode={setDarkMode}

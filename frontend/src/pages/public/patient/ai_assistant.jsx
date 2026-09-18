@@ -53,6 +53,50 @@ const initialWelcomeMessage = {
   disclaimer: null,
 };
 
+function cleanAssistantText(text) {
+  return String(text || "")
+    .replace(/<svg\b[^>]*>[\s\S]*?<\/svg\s*>/gi, "")
+    .replace(/<\/?svg\b[^>]*>/gi, "")
+    .replace(/&#x20;|&#32;/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\bsvg\b/gi, "")
+    .trim();
+}
+
+function cleanCitationText(value) {
+  return String(value || "")
+    .replace(/<svg\b[^>]*>[\s\S]*?<\/svg\s*>/gi, "")
+    .replace(/<\/?svg\b[^>]*>/gi, "")
+    .replace(/&#x20;|&#32;/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+}
+
+function normalizeCitation(citation) {
+  const pmid = cleanCitationText(citation?.pmid).match(/\d+/)?.[0] || "";
+  const suppliedUrl = cleanCitationText(citation?.url);
+  const url = /^https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\/\d+\/?$/.test(suppliedUrl)
+    ? suppliedUrl
+    : pmid
+      ? `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`
+      : "";
+
+  return {
+    ...citation,
+    pmid,
+    title: cleanCitationText(citation?.title),
+    journal: cleanCitationText(citation?.journal),
+    year: cleanCitationText(citation?.year),
+    url,
+  };
+}
+
+function normalizeCitations(citations) {
+  return Array.isArray(citations)
+    ? citations.map(normalizeCitation).filter((citation) => citation.pmid)
+    : [];
+}
+
 const quickPrompts = [
   "Summarize my health today",
   "Explain my latest lab results",
@@ -192,7 +236,7 @@ function MessageBubble({ message, darkMode }) {
                 : "rounded-bl-md border border-slate-100 bg-white text-slate-700 shadow-sm"
             }`}
           >
-            <p className="whitespace-pre-wrap">{message.text}</p>
+            <p className="whitespace-pre-wrap">{cleanAssistantText(message.text)}</p>
 
             {/* Clickable PubMed Citation Badges */}
             {message.citations && message.citations.length > 0 && (
@@ -327,14 +371,14 @@ export default function AIAssistant() {
             const formatted = mostRecent.messages.map((m) => ({
               id: m.id,
               role: m.role,
-              text: m.content,
+              text: cleanAssistantText(m.content),
               time: m.created_at
                 ? new Date(m.created_at).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })
                 : "Past message",
-              citations: m.sources || [],
+              citations: normalizeCitations(m.sources),
               disclaimer:
                 m.role === "assistant"
                   ? "This system provides AI-assisted clinical information based on medical literature and available clinical records. Consult a licensed physician before making clinical decisions."
@@ -389,12 +433,12 @@ export default function AIAssistant() {
       const assistantMessage = {
         id: result.message_id || Date.now() + 1,
         role: "assistant",
-        text: result.response,
+        text: cleanAssistantText(result.response),
         time: new Date().toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         }),
-        citations: result.citations || [],
+        citations: normalizeCitations(result.citations),
         disclaimer: result.disclaimer,
       };
 
@@ -434,14 +478,14 @@ export default function AIAssistant() {
       const formatted = conv.messages.map((m) => ({
         id: m.id,
         role: m.role,
-        text: m.content,
+        text: cleanAssistantText(m.content),
         time: m.created_at
           ? new Date(m.created_at).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
             })
           : "Past message",
-        citations: m.sources || [],
+        citations: normalizeCitations(m.sources),
         disclaimer:
           m.role === "assistant"
             ? "This system provides AI-assisted clinical information based on medical literature and available clinical records. Consult a licensed physician before making clinical decisions."
