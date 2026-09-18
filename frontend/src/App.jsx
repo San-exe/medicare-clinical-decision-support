@@ -49,6 +49,13 @@ import DoctorPatients from "./pages/public/doctor/patients";
 import DoctorReports from "./pages/public/doctor/reports";
 
 // =========================================================
+// ADMIN PAGES
+// =========================================================
+
+import AdminDashboard from "./pages/public/admin/admin_dashboard";
+import AdminLogin from "./pages/public/admin-login";
+
+// =========================================================
 // PROTECTED ROUTE
 // =========================================================
 
@@ -75,6 +82,9 @@ function ProtectedRoute({ children, allowedRoles }) {
     if (!allowedRoles.includes(currentRole)) {
       if (currentRole === "doctor") {
         return <Navigate to="/doctor/dashboard" replace />;
+      }
+      if (currentRole === "admin") {
+        return <Navigate to="/admin/dashboard" replace />;
       }
       return <Navigate to="/patient/dashboard" replace />;
     }
@@ -111,6 +121,11 @@ function App() {
           <Route
             path="/register"
             element={<Register />}
+          />
+
+          <Route
+            path="/admin/login"
+            element={<AdminLogin />}
           />
 
           {/* =================================================
@@ -305,6 +320,19 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["doctor"]}>
                 <DoctorReports />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* =================================================
+              ADMIN ROUTES
+          ================================================= */}
+
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />

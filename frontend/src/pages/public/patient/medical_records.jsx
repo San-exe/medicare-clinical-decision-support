@@ -23,6 +23,8 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
+import { useAuth } from "../../../_core/hooks/useAuth";
+import patientService from "../../../services/patientService";
 
 const ROUTES = {
   dashboard: "/patient/dashboard",
@@ -131,88 +133,7 @@ const tabs = [
   "Other",
 ];
 
-const records = [
-  {
-    id: 1,
-    document: "CBC Blood Test Report",
-    type: "Lab Report",
-    doctor: "Dr. Anjali Sharma",
-    date: "18 May 2026",
-    category: "Lab Reports",
-    summary:
-      "Complete blood count report with all major values in normal range.",
-  },
-  {
-    id: 2,
-    document: "Chest X-Ray",
-    type: "Imaging",
-    doctor: "Dr. Neha Verma",
-    date: "12 May 2026",
-    category: "Imaging",
-    summary:
-      "Chest X-ray study uploaded for routine review.",
-  },
-  {
-    id: 3,
-    document: "Prescription - May",
-    type: "Prescription",
-    doctor: "Dr. Vivek Patel",
-    date: "10 May 2026",
-    category: "Prescriptions",
-    summary:
-      "Current prescription including medication instructions.",
-  },
-  {
-    id: 4,
-    document: "ECG Report",
-    type: "Lab Report",
-    doctor: "Dr. Anjali Sharma",
-    date: "10 May 2026",
-    category: "Lab Reports",
-    summary:
-      "Resting ECG report with sinus rhythm noted.",
-  },
-  {
-    id: 5,
-    document: "BMI & Weight Assessment",
-    type: "Doctor Notes",
-    doctor: "Dr. Neha Verma",
-    date: "08 May 2026",
-    category: "Doctor Notes",
-    summary:
-      "Clinical note covering BMI, weight and lifestyle observations.",
-  },
-  {
-    id: 6,
-    document: "Previous Prescription",
-    type: "Prescription",
-    doctor: "Dr. Rohan Mehta",
-    date: "28 Apr 2026",
-    category: "Prescriptions",
-    summary:
-      "Previous medication plan and follow-up instructions.",
-  },
-  {
-    id: 7,
-    document: "Vitamin D Report",
-    type: "Lab Report",
-    doctor: "Dr. Anjali Sharma",
-    date: "21 Apr 2026",
-    category: "Lab Reports",
-    summary:
-      "Vitamin D laboratory result and reference range.",
-  },
-  {
-    id: 8,
-    document: "Ultrasound Report",
-    type: "Imaging",
-    doctor: "Dr. Neha Verma",
-    date: "15 Apr 2026",
-    category: "Imaging",
-    summary:
-      "Ultrasound imaging report prepared for physician review.",
-  },
-];
+const records = [];
 
 function useDarkMode() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -263,6 +184,13 @@ function Header({
   darkMode,
   setDarkMode,
 }) {
+  const { user } = useAuth();
+  const displayName =
+    user?.full_name ||
+    (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : null) ||
+    user?.email ||
+    "Patient";
+
   return (
     <header
       className={`flex h-[82px] shrink-0 items-center justify-between border-b px-8 ${
@@ -373,17 +301,9 @@ function Header({
           className="flex items-center gap-3"
         >
           <div
-            className={`h-10 w-10 overflow-hidden rounded-full ${
-              darkMode
-                ? "bg-slate-700"
-                : "bg-slate-200"
-            }`}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-white font-semibold text-xs"
           >
-            <img
-              src="https://i.pravatar.cc/100?img=12"
-              alt="Patient profile"
-              className="h-full w-full object-cover"
-            />
+            {displayName.slice(0, 2).toUpperCase()}
           </div>
 
           <span
@@ -393,7 +313,7 @@ function Header({
                 : "text-slate-800"
             }`}
           >
-            John Doe
+            {displayName}
           </span>
 
           <ChevronDown
@@ -416,30 +336,32 @@ function UploadModal({
   onUpload,
 }) {
   const [file, setFile] = useState(null);
-  const [category, setCategory] =
-    useState("Lab Reports");
-  const [doctor, setDoctor] =
-    useState("Dr. Anjali Sharma");
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("Lab Reports");
+  const [isUploading, setIsUploading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const submit = () => {
+  const submit = async () => {
     if (!file) return;
 
-    onUpload({
-      id: Date.now(),
-      document: file.name,
-      type:
-        category === "Prescriptions"
-          ? "Prescription"
-          : category === "Lab Reports"
-            ? "Lab Report"
-            : category.slice(0, -1),
-      doctor,
-      date: "22 May 2026",
-      category,
-      summary: `Uploaded ${file.name} to your medical records.`,
-    });
-
-    onClose();
+    try {
+      setIsUploading(true);
+      setErrorMsg("");
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("title", title || file.name);
+      await patientService.uploadMedicalRecord(formData);
+      if (onUpload) onUpload();
+      onClose();
+    } catch (err) {
+      const msg =
+        err.response?.data?.error?.message ||
+        err.response?.data?.detail ||
+        "Upload failed. Please ensure file is valid (PDF/PNG/JPG).";
+      setErrorMsg(msg);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -470,7 +392,7 @@ function UploadModal({
                   : "text-slate-500"
               }`}
             >
-              Add a document to your medical history.
+              Add a verified diagnostic report or document to your records.
             </p>
           </div>
 
@@ -487,6 +409,12 @@ function UploadModal({
           </button>
         </div>
 
+        {errorMsg && (
+          <div className="mt-3 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-[11px] text-red-500">
+            {errorMsg}
+          </div>
+        )}
+
         <div className="mt-6 space-y-4">
           <label
             className={`block text-[12px] font-medium ${
@@ -495,8 +423,7 @@ function UploadModal({
                 : "text-slate-700"
             }`}
           >
-            Document
-
+            Document File
             <div
               className={`mt-2 flex cursor-pointer items-center gap-3 rounded-lg border border-dashed px-3 py-3 ${
                 darkMode
@@ -512,12 +439,11 @@ function UploadModal({
               <input
                 type="file"
                 accept=".pdf,.png,.jpg,.jpeg"
-                onChange={(e) =>
-                  setFile(
-                    e.target.files?.[0] ??
-                      null
-                  )
-                }
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  setFile(f);
+                  if (f && !title) setTitle(f.name.replace(/\.[^/.]+$/, ""));
+                }}
                 className="w-full text-[11px]"
               />
             </div>
@@ -530,8 +456,28 @@ function UploadModal({
                 : "text-slate-700"
             }`}
           >
-            Category
+            Document Title
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., CBC Blood Test Report"
+              className={`mt-2 w-full rounded-lg border px-3 py-2.5 text-[12px] outline-none ${
+                darkMode
+                  ? "border-slate-700 bg-[#101918] text-slate-200"
+                  : "border-slate-200 bg-white text-slate-700"
+              }`}
+            />
+          </label>
 
+          <label
+            className={`block text-[12px] font-medium ${
+              darkMode
+                ? "text-slate-300"
+                : "text-slate-700"
+            }`}
+          >
+            Category
             <select
               value={category}
               onChange={(e) =>
@@ -551,52 +497,17 @@ function UploadModal({
             </select>
           </label>
 
-          <label
-            className={`block text-[12px] font-medium ${
-              darkMode
-                ? "text-slate-300"
-                : "text-slate-700"
-            }`}
-          >
-            Doctor
-
-            <select
-              value={doctor}
-              onChange={(e) =>
-                setDoctor(e.target.value)
-              }
-              className={`mt-2 w-full rounded-lg border px-3 py-2.5 text-[12px] outline-none ${
-                darkMode
-                  ? "border-slate-700 bg-[#101918] text-slate-200"
-                  : "border-slate-200 bg-white text-slate-700"
-              }`}
-            >
-              <option>
-                Dr. Anjali Sharma
-              </option>
-              <option>
-                Dr. Vivek Patel
-              </option>
-              <option>
-                Dr. Neha Verma
-              </option>
-              <option>
-                Dr. Rohan Mehta
-              </option>
-            </select>
-          </label>
-
           <button
             type="button"
             onClick={submit}
-            disabled={!file}
-            className={`mt-2 w-full rounded-lg px-4 py-3 text-[12px] font-semibold text-white ${
-              file
+            disabled={!file || isUploading}
+            className={`mt-2 w-full rounded-lg px-4 py-3 text-[12px] font-semibold text-white transition ${
+              file && !isUploading
                 ? "bg-emerald-500 hover:bg-emerald-600"
-                : "cursor-not-allowed bg-slate-400"
+                : "cursor-not-allowed bg-slate-400 opacity-60"
             }`}
           >
-            Upload Record
+            {isUploading ? "Uploading..." : "Upload Record"}
           </button>
         </div>
       </div>
@@ -775,8 +686,64 @@ export default function MedicalRecords() {
   const [preview, setPreview] =
     useState(null);
 
-  const [allRecords, setAllRecords] =
-    useState(records);
+  const [allRecords, setAllRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchRecords = async () => {
+    try {
+      setLoading(true);
+      const [recRes, labRes] = await Promise.allSettled([
+        patientService.getMedicalRecords(),
+        patientService.getLabReports(),
+      ]);
+      const list = [];
+      if (recRes.status === "fulfilled") {
+        const raw = recRes.value?.results || recRes.value || [];
+        if (Array.isArray(raw)) {
+          raw.forEach((r) => {
+            list.push({
+              id: `rec-${r.id}`,
+              document: r.title || "Clinical Medical Record",
+              type: r.record_type || "Clinical Note",
+              doctor: r.doctor_name || "Attending Physician",
+              date: r.recorded_at
+                ? new Date(r.recorded_at).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })
+                : "Recorded",
+              category: r.record_type === "Prescription" ? "Prescriptions" : "Doctor Notes",
+              summary: r.description || "Clinical patient encounter documentation.",
+            });
+          });
+        }
+      }
+      if (labRes.status === "fulfilled") {
+        const raw = labRes.value?.results || labRes.value || [];
+        if (Array.isArray(raw)) {
+          raw.forEach((l) => {
+            list.push({
+              id: `lab-${l.id}`,
+              document: l.title || "Diagnostic Report",
+              type: l.file_type || "Lab Report",
+              doctor: "Pathology / Diagnostic Lab",
+              date: l.uploaded_at
+                ? new Date(l.uploaded_at).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })
+                : "Uploaded",
+              category: "Lab Reports",
+              summary: l.analysis_summary || l.extracted_text || "Diagnostic test documentation.",
+            });
+          });
+        }
+      }
+      setAllRecords(list);
+    } catch (err) {
+      console.warn("Failed to load records:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRecords();
+  }, []);
 
   const filteredRecords = useMemo(() => {
     const term =
@@ -1319,13 +1286,8 @@ export default function MedicalRecords() {
           onClose={() =>
             setShowUpload(false)
           }
-          onUpload={(newRecord) => {
-            setAllRecords(
-              (current) => [
-                newRecord,
-                ...current,
-              ]
-            );
+          onUpload={() => {
+            fetchRecords();
           }}
         />
       )}

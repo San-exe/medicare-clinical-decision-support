@@ -133,7 +133,7 @@ function Login() {
         if (targetRole === "doctor") {
           navigate("/doctor/dashboard");
         } else if (targetRole === "admin") {
-          navigate("/");
+          navigate("/admin/dashboard");
         } else {
           navigate("/patient/dashboard");
         }

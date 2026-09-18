@@ -39,19 +39,6 @@ import {
 import { useAuth } from "../../../_core/hooks/useAuth";
 import patientService from "../../../services/patientService";
 
-/* -------------------------------------------------------
-   BLOOD PRESSURE DATA
-------------------------------------------------------- */
-
-const bpData = [
-  { day: "May 16", systolic: 120, diastolic: 78 },
-  { day: "May 17", systolic: 117, diastolic: 77 },
-  { day: "May 18", systolic: 125, diastolic: 83 },
-  { day: "May 19", systolic: 112, diastolic: 79 },
-  { day: "May 20", systolic: 118, diastolic: 79 },
-  { day: "May 21", systolic: 124, diastolic: 83 },
-  { day: "May 22", systolic: 118, diastolic: 78 },
-];
 
 /* -------------------------------------------------------
    PATIENT PAGE ROUTES
@@ -409,17 +396,13 @@ function Header({ darkMode, setDarkMode }) {
         {/* PROFILE */}
         <button className="flex items-center gap-3">
           <div
-            className={`h-10 w-10 overflow-hidden rounded-full ${
+            className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ${
               darkMode
-                ? "bg-slate-700"
-                : "bg-slate-200"
+                ? "bg-emerald-800 text-white"
+                : "bg-emerald-100 text-emerald-800 font-bold"
             }`}
           >
-            <img
-              src="https://i.pravatar.cc/100?img=12"
-              alt={displayName}
-              className="h-full w-full object-cover"
-            />
+            <span className="text-sm font-bold uppercase">{displayName.charAt(0) || "P"}</span>
           </div>
 
           <span
@@ -628,7 +611,7 @@ function PatientCard({ darkMode, user, summary }) {
    BLOOD PRESSURE CHART
 ------------------------------------------------------- */
 
-function BloodPressureChart({ darkMode }) {
+function BloodPressureChart({ darkMode, data = [] }) {
   const gridColor = darkMode
     ? "#263936"
     : "#e5e7eb";
@@ -672,194 +655,186 @@ function BloodPressureChart({ darkMode }) {
                   : "text-slate-500"
               }`}
             >
-              Last 7 days
+              {data.length > 0 ? "Clinical measurements" : "Measured blood pressure readings"}
             </p>
           </div>
         </div>
-
-        <button
-          className={`flex items-center gap-5 rounded-xl border px-4 py-2.5 text-[12px] font-medium ${
-            darkMode
-              ? "border-slate-700 bg-slate-900/40 text-slate-300"
-              : "border-slate-200 bg-white text-slate-700"
-          }`}
-        >
-          Last 7 days
-          <ChevronDown size={15} />
-        </button>
       </div>
 
-      {/* LEGEND */}
-      <div className="mt-3 flex shrink-0 justify-end gap-6 text-[11px]">
-        <div
-          className={`flex items-center gap-2 ${
-            darkMode
-              ? "text-slate-400"
-              : "text-slate-600"
-          }`}
-        >
-          <span className="h-[3px] w-4 rounded-full bg-emerald-700" />
-          Systolic
+      {data.length === 0 ? (
+        <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
+          <Activity size={32} className="text-slate-400 mb-2 opacity-50" />
+          <p className={`text-[14px] font-semibold ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+            No health measurements available yet.
+          </p>
+          <p className={`mt-1 text-[12px] max-w-xs ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+            Upload diagnostic reports to visualize your blood pressure trends.
+          </p>
         </div>
+      ) : (
+        <>
+          {/* LEGEND */}
+          <div className="mt-3 flex shrink-0 justify-end gap-6 text-[11px]">
+            <div
+              className={`flex items-center gap-2 ${
+                darkMode
+                  ? "text-slate-400"
+                  : "text-slate-600"
+              }`}
+            >
+              <span className="h-[3px] w-4 rounded-full bg-emerald-700" />
+              Systolic
+            </div>
 
-        <div
-          className={`flex items-center gap-2 ${
-            darkMode
-              ? "text-slate-400"
-              : "text-slate-600"
-          }`}
-        >
-          <span className="h-[3px] w-4 rounded-full bg-emerald-300" />
-          Diastolic
-        </div>
-      </div>
+            <div
+              className={`flex items-center gap-2 ${
+                darkMode
+                  ? "text-slate-400"
+                  : "text-slate-600"
+              }`}
+            >
+              <span className="h-[3px] w-4 rounded-full bg-emerald-300" />
+              Diastolic
+            </div>
+          </div>
 
-      {/* GRAPH */}
-      <div className="mt-1 min-h-0 flex-1">
-        <ResponsiveContainer
-          width="100%"
-          height="100%"
-        >
-          <LineChart
-            data={bpData}
-            margin={{
-              top: 8,
-              right: 0,
-              left: -20,
-              bottom: 0,
-            }}
-          >
-            <CartesianGrid
-              strokeDasharray="2 4"
-              vertical
-              horizontal
-              stroke={gridColor}
-            />
+          {/* GRAPH */}
+          <div className="mt-1 min-h-0 flex-1">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+              <LineChart
+                data={data}
+                margin={{
+                  top: 8,
+                  right: 0,
+                  left: -20,
+                  bottom: 0,
+                }}
+              >
+                <CartesianGrid
+                  strokeDasharray="2 4"
+                  vertical
+                  horizontal
+                  stroke={gridColor}
+                />
 
-            <XAxis
-              dataKey="day"
-              axisLine={false}
-              tickLine={false}
-              tick={{
-                fontSize: 11,
-                fill: textColor,
-              }}
-              dy={8}
-            />
+                <XAxis
+                  dataKey="day"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{
+                    fontSize: 11,
+                    fill: textColor,
+                  }}
+                  dy={8}
+                />
 
-            <YAxis
-              domain={[0, 150]}
-              ticks={[
-                0,
-                30,
-                60,
-                90,
-                120,
-                150,
-              ]}
-              axisLine={false}
-              tickLine={false}
-              tick={{
-                fontSize: 11,
-                fill: textColor,
-              }}
-            />
+                <YAxis
+                  domain={[0, 180]}
+                  ticks={[
+                    0,
+                    40,
+                    80,
+                    120,
+                    160,
+                  ]}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{
+                    fontSize: 11,
+                    fill: textColor,
+                  }}
+                />
 
-            <Tooltip
-              content={({
-                active,
-                payload,
-                label,
-              }) => {
-                if (
-                  !active ||
-                  !payload?.length
-                ) {
-                  return null;
-                }
+                <Tooltip
+                  content={({
+                    active,
+                    payload,
+                    label,
+                  }) => {
+                    if (
+                      !active ||
+                      !payload?.length
+                    ) {
+                      return null;
+                    }
 
-                return (
-                  <div
-                    className={`rounded-xl border px-4 py-3 shadow-lg ${
-                      darkMode
-                        ? "border-slate-700 bg-[#101918] text-slate-200"
-                        : "border-slate-200 bg-white text-slate-700"
-                    }`}
-                  >
-                    <p className="mb-2 text-[12px] font-semibold">
-                      {label}, 2026
-                    </p>
+                    return (
+                      <div
+                        className={`rounded-xl border px-4 py-3 shadow-lg ${
+                          darkMode
+                            ? "border-slate-700 bg-[#101918] text-slate-200"
+                            : "border-slate-200 bg-white text-slate-700"
+                        }`}
+                      >
+                        <p className="mb-2 text-[12px] font-semibold">
+                          {label}
+                        </p>
 
-                    <div className="space-y-1 text-[11px]">
-                      <p>
-                        <span className="mr-2 text-emerald-700">
-                          ●
-                        </span>
+                        <div className="space-y-1 text-[11px]">
+                          <p>
+                            <span className="mr-2 text-emerald-700">
+                              ●
+                            </span>
+                            Systolic
+                            <strong className="ml-5">
+                              {payload[0]?.value} mmHg
+                            </strong>
+                          </p>
 
-                        Systolic
+                          {payload[1] && (
+                            <p>
+                              <span className="mr-2 text-emerald-300">
+                                ●
+                              </span>
+                              Diastolic
+                              <strong className="ml-5">
+                                {payload[1]?.value} mmHg
+                              </strong>
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }}
+                />
 
-                        <strong className="ml-5">
-                          {payload[0]?.value} mmHg
-                        </strong>
-                      </p>
+                <Line
+                  type="monotone"
+                  dataKey="systolic"
+                  stroke="#087f63"
+                  strokeWidth={2.5}
+                  dot={{
+                    r: 3,
+                    fill: darkMode
+                      ? "#15211f"
+                      : "#fff",
+                    stroke: "#087f63",
+                    strokeWidth: 2,
+                  }}
+                />
 
-                      <p>
-                        <span className="mr-2 text-emerald-300">
-                          ●
-                        </span>
-
-                        Diastolic
-
-                        <strong className="ml-5">
-                          {payload[1]?.value} mmHg
-                        </strong>
-                      </p>
-                    </div>
-                  </div>
-                );
-              }}
-            />
-
-            <Line
-              type="monotone"
-              dataKey="systolic"
-              stroke="#087f63"
-              strokeWidth={2.5}
-              dot={{
-                r: 3,
-                fill: darkMode
-                  ? "#15211f"
-                  : "#fff",
-                stroke: "#087f63",
-                strokeWidth: 2,
-              }}
-              activeDot={{
-                r: 6,
-                fill: darkMode
-                  ? "#15211f"
-                  : "#fff",
-                stroke: "#087f63",
-                strokeWidth: 2,
-              }}
-            />
-
-            <Line
-              type="monotone"
-              dataKey="diastolic"
-              stroke="#69ceb0"
-              strokeWidth={2}
-              dot={{
-                r: 3,
-                fill: darkMode
-                  ? "#15211f"
-                  : "#fff",
-                stroke: "#69ceb0",
-                strokeWidth: 2,
-              }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+                <Line
+                  type="monotone"
+                  dataKey="diastolic"
+                  stroke="#69ceb0"
+                  strokeWidth={2}
+                  dot={{
+                    r: 3,
+                    fill: darkMode
+                      ? "#15211f"
+                      : "#fff",
+                    stroke: "#69ceb0",
+                    strokeWidth: 2,
+                  }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -868,36 +843,10 @@ function BloodPressureChart({ darkMode }) {
    HEALTH SUMMARY
 ------------------------------------------------------- */
 
-function HealthSummary({ darkMode }) {
-  const rows = [
-    {
-      label: "Blood Pressure",
-      icon: (
-        <Heart
-          size={21}
-          strokeWidth={1.6}
-        />
-      ),
-    },
-    {
-      label: "Oxygen Level",
-      icon: (
-        <Droplets
-          size={21}
-          strokeWidth={1.6}
-        />
-      ),
-    },
-    {
-      label: "Temperature",
-      icon: (
-        <Thermometer
-          size={21}
-          strokeWidth={1.6}
-        />
-      ),
-    },
-  ];
+function HealthSummary({ darkMode, metrics = [] }) {
+  const hasAbnormal = metrics.some((m) => m.flag && m.flag.toLowerCase() !== "normal");
+  const overallLabel = metrics.length === 0 ? "PENDING" : hasAbnormal ? "ATTENTION" : "STABLE";
+  const overallColor = metrics.length === 0 ? "text-slate-400" : hasAbnormal ? "text-amber-500" : "text-emerald-500";
 
   return (
     <div
@@ -944,66 +893,87 @@ function HealthSummary({ darkMode }) {
                 : "text-slate-600"
             }`}
           >
-            Overall Health
+            Overall Status
           </p>
 
-          <p className="mt-1 text-[34px] font-bold leading-none tracking-[-1px] text-emerald-500">
-            GOOD
+          <p className={`mt-1 text-[30px] font-bold leading-none tracking-[-1px] ${overallColor}`}>
+            {overallLabel}
           </p>
         </div>
 
         <div
-          className={`flex h-[70px] w-[70px] shrink-0 items-center justify-center rounded-full ${
+          className={`flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full ${
             darkMode
               ? "bg-emerald-500/10"
               : "bg-emerald-50"
           }`}
         >
           <Heart
-            size={34}
+            size={30}
             fill="currentColor"
-            className="text-emerald-500"
+            className={overallColor}
           />
         </div>
       </div>
 
       {/* STATUS */}
-      <div className="flex-1">
-        {rows.map((row) => (
-          <div
-            key={row.label}
-            className={`flex items-center justify-between border-b py-4 ${
-              darkMode
-                ? "border-slate-800"
-                : "border-slate-100"
-            }`}
-          >
+      <div className="flex-1 overflow-y-auto mt-2">
+        {metrics.length === 0 ? (
+          <div className="py-8 text-center text-xs text-slate-500">
+            No health measurements available yet.
+          </div>
+        ) : (
+          metrics.map((row, idx) => (
             <div
-              className={`flex items-center gap-4 ${
+              key={idx}
+              className={`flex items-center justify-between border-b py-3 last:border-b-0 ${
                 darkMode
-                  ? "text-slate-300"
-                  : "text-slate-700"
+                  ? "border-slate-800"
+                  : "border-slate-100"
               }`}
             >
-              <span className="text-emerald-500">
-                {row.icon}
-              </span>
+              <div
+                className={`flex items-center gap-3 ${
+                  darkMode
+                    ? "text-slate-300"
+                    : "text-slate-700"
+                }`}
+              >
+                <Activity size={17} className="text-emerald-500 shrink-0" />
+                <div>
+                  <span className="text-[13px] font-medium block">{row.test_name}</span>
+                  {row.value && (
+                    <span className="text-[11px] text-slate-400">
+                      {row.value} {row.unit || ""}
+                    </span>
+                  )}
+                </div>
+              </div>
 
-              <span className="text-[14px]">
-                {row.label}
-              </span>
+              <div className={`flex items-center gap-1.5 text-[12px] font-medium ${
+                (row.flag || "").toLowerCase() === "high" || (row.flag || "").toLowerCase() === "critical"
+                  ? "text-red-400"
+                  : (row.flag || "").toLowerCase() === "low"
+                  ? "text-amber-400"
+                  : "text-emerald-500"
+              }`}>
+                <span className={`h-2 w-2 rounded-full ${
+                  (row.flag || "").toLowerCase() === "high" || (row.flag || "").toLowerCase() === "critical"
+                    ? "bg-red-400"
+                    : (row.flag || "").toLowerCase() === "low"
+                    ? "bg-amber-400"
+                    : "bg-emerald-400"
+                }`} />
+                {row.flag ? row.flag.toUpperCase() : "RECORDED"}
+              </div>
             </div>
-
-            <div className="flex items-center gap-2 text-[13px] font-medium text-emerald-500">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              Normal
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
 }
+
 /* -------------------------------------------------------
    MAIN DASHBOARD
 ------------------------------------------------------- */
@@ -1012,13 +982,51 @@ export default function PatientDashboard() {
   const { user, logout } = useAuth();
   const [summary, setSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(true);
+  const [bpMeasurements, setBpMeasurements] = useState([]);
+  const [recentMetrics, setRecentMetrics] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
-        const data = await patientService.getDashboardSummary();
-        if (isMounted) setSummary(data);
+        setLoadingSummary(true);
+        const [dashData, labData] = await Promise.all([
+          patientService.getDashboardSummary().catch(() => null),
+          patientService.getLabReports().catch(() => []),
+        ]);
+        if (!isMounted) return;
+
+        if (dashData) setSummary(dashData);
+
+        const reportsList = Array.isArray(labData) ? labData : labData?.results || [];
+        const extractedBp = [];
+        const extractedMetrics = [];
+
+        reportsList.forEach((report) => {
+          const results = report.results || [];
+          results.forEach((res) => {
+            extractedMetrics.push(res);
+            const name = (res.test_name || "").toLowerCase();
+            if (name.includes("blood pressure") || name.includes("bp")) {
+              const parts = String(res.value).split("/");
+              if (parts.length === 2) {
+                const sys = parseInt(parts[0], 10);
+                const dia = parseInt(parts[1], 10);
+                if (!isNaN(sys) && !isNaN(dia)) {
+                  const d = report.uploaded_at ? new Date(report.uploaded_at) : new Date();
+                  extractedBp.push({
+                    day: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+                    systolic: sys,
+                    diastolic: dia,
+                  });
+                }
+              }
+            }
+          });
+        });
+
+        setBpMeasurements(extractedBp);
+        setRecentMetrics(extractedMetrics.slice(0, 4));
       } catch (err) {
         console.warn("Could not load dashboard summary:", err);
       } finally {
@@ -1029,6 +1037,7 @@ export default function PatientDashboard() {
       isMounted = false;
     };
   }, []);
+
 
   const firstName =
     user?.first_name ||
@@ -1182,10 +1191,12 @@ export default function PatientDashboard() {
             <div className="mt-4 grid min-h-0 flex-1 grid-cols-[1.7fr_1fr] gap-4">
               <BloodPressureChart
                 darkMode={darkMode}
+                data={bpMeasurements}
               />
 
               <HealthSummary
                 darkMode={darkMode}
+                metrics={recentMetrics}
               />
             </div>
         </div>

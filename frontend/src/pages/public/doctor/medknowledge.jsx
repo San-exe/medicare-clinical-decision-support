@@ -13,10 +13,15 @@ import {
   Filter,
   Clock3,
   Star,
+  Sparkles,
+  Loader2,
+  FileText,
 } from "lucide-react";
 
 import Sidebar from "./sidebar";
 import { useTheme } from "../ThemeContext";
+import { useAuth } from "../../../_core/hooks/useAuth";
+import aiService from "../../../services/aiService";
 
 const knowledgeItems = [
   {
@@ -91,9 +96,43 @@ const categories = [
 
 export default function MedicalKnowledge() {
   const { isDark, toggleTheme } = useTheme();
+  const { user } = useAuth();
+
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All Categories");
   const [bookmarked, setBookmarked] = useState([]);
+
+  // Live PubMed / RAG Query State
+  const [pubMedQuery, setPubMedQuery] = useState("");
+  const [pubMedResult, setPubMedResult] = useState(null);
+  const [searchingPubMed, setSearchingPubMed] = useState(false);
+  const [pubMedError, setPubMedError] = useState("");
+
+  const doctorName = user?.last_name
+    ? `Dr. ${user.last_name}`
+    : user?.first_name
+    ? `Dr. ${user.first_name}`
+    : user?.full_name
+    ? `Dr. ${user.full_name}`
+    : "Doctor";
+
+  const handlePubMedSearch = async (e) => {
+    e?.preventDefault();
+    const query = pubMedQuery.trim();
+    if (!query) return;
+
+    try {
+      setSearchingPubMed(true);
+      setPubMedError("");
+      const res = await aiService.sendChatMessage({ prompt: `Clinical literature search on: ${query}` });
+      setPubMedResult(res);
+    } catch (err) {
+      console.error("PubMed research query failed:", err);
+      setPubMedError("Failed to query PubMed literature database. Please try again.");
+    } finally {
+      setSearchingPubMed(false);
+    }
+  };
 
   const filteredItems = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -143,7 +182,7 @@ export default function MedicalKnowledge() {
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search medical knowledge..."
+                  placeholder="Filter knowledge topics..."
                   className="w-full bg-transparent text-sm outline-none placeholder:text-[var(--muted)]"
                 />
               </div>
@@ -154,7 +193,7 @@ export default function MedicalKnowledge() {
                 className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-soft)] bg-[var(--card-soft)] text-[var(--accent)]"
                 aria-label="Toggle theme"
               >
-                {isDark ? "☼" : "☾"}
+                <span className="text-xl">{isDark ? "☼" : "☾"}</span>
               </button>
 
               <button
@@ -167,21 +206,22 @@ export default function MedicalKnowledge() {
               </button>
 
               <div className="hidden items-center gap-2 sm:flex">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent-soft)]">
-                  <Stethoscope size={18} className="text-[var(--accent)]" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent-soft)] font-semibold text-xs text-[var(--accent)]">
+                  {doctorName.slice(0, 3)}
                 </div>
+                <span className="text-xs font-semibold">{doctorName}</span>
                 <ChevronDown size={15} className="text-[var(--muted)]" />
               </div>
             </div>
           </header>
 
           <section className="h-[calc(100vh-72px)] min-h-0 overflow-y-auto px-5 py-5 sm:px-7 lg:px-8">
-            <div className="mx-auto max-w-[1500px]">
+            <div className="mx-auto max-w-[1500px] space-y-5">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                  <h2 className="text-[22px] font-bold">Clinical Medical Knowledge</h2>
+                  <h2 className="text-[22px] font-bold">Clinical Decision Support Knowledge</h2>
                   <p className="mt-1 max-w-2xl text-sm text-[var(--muted)]">
-                    Evidence-informed references, clinical pathways, and treatment resources for point-of-care decision support.
+                    Evidence-based clinical guidelines, pathways, and PubMed-grounded research citations.
                   </p>
                 </div>
 
@@ -203,23 +243,101 @@ export default function MedicalKnowledge() {
                 </div>
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <KnowledgeStat icon={BookOpen} label="Clinical references" value="48" />
-                <KnowledgeStat icon={ShieldCheck} label="Safety resources" value="16" />
-                <KnowledgeStat icon={HeartPulse} label="Updated this week" value="12" />
+              {/* LIVE PUBMED LITERATURE SEARCH */}
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
+                    <Sparkles size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold">Live PubMed Literature & Evidence Search</h3>
+                    <p className="text-[11px] text-[var(--muted)]">
+                      Query peer-reviewed clinical abstracts directly from the National Library of Medicine (NCBI PubMed).
+                    </p>
+                  </div>
+                </div>
+
+                <form onSubmit={handlePubMedSearch} className="mt-4 flex gap-3">
+                  <div className="flex flex-1 items-center gap-2.5 rounded-xl border border-[var(--border-soft)] bg-[var(--card-soft)] px-4 py-2">
+                    <Search size={16} className="text-[var(--muted)]" />
+                    <input
+                      type="text"
+                      value={pubMedQuery}
+                      onChange={(e) => setPubMedQuery(e.target.value)}
+                      placeholder="e.g. Metformin renal clearance, SGLT2 inhibitors heart failure, Acute coronary syndrome..."
+                      className="w-full bg-transparent text-xs text-[var(--text)] outline-none placeholder:text-[var(--muted)]"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={searchingPubMed || !pubMedQuery.trim()}
+                    className="rounded-xl bg-[var(--accent)] px-5 py-2 text-xs font-semibold text-[#06231d] transition hover:opacity-90 disabled:opacity-50"
+                  >
+                    {searchingPubMed ? "Searching PubMed..." : "Query PubMed"}
+                  </button>
+                </form>
+
+                {pubMedError && (
+                  <p className="mt-2 text-xs text-red-500">{pubMedError}</p>
+                )}
+
+                {searchingPubMed && (
+                  <div className="mt-4 flex items-center gap-2 text-xs text-[var(--muted)]">
+                    <Loader2 size={16} className="animate-spin text-[var(--accent)]" />
+                    Retrieving abstracts and clinical citations from NCBI PubMed...
+                  </div>
+                )}
+
+                {pubMedResult && (
+                  <div className="mt-4 rounded-xl border border-[var(--border-soft)] bg-[var(--card-soft)] p-4 text-xs">
+                    <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-2">
+                      <span className="font-semibold text-[var(--accent)]">Clinical Evidence Summary</span>
+                      <span className="text-[10px] text-[var(--muted)]">NCBI PubMed API</span>
+                    </div>
+
+                    <p className="mt-2 whitespace-pre-wrap leading-relaxed text-[var(--text)]">
+                      {pubMedResult.message || pubMedResult.response || "Search completed."}
+                    </p>
+
+                    {pubMedResult.citations && pubMedResult.citations.length > 0 && (
+                      <div className="mt-3 border-t border-[var(--border-soft)] pt-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">
+                          Peer-Reviewed Citations
+                        </p>
+                        <div className="mt-2 space-y-1.5">
+                          {pubMedResult.citations.map((c, idx) => (
+                            <a
+                              key={idx}
+                              href={c.url || `https://pubmed.ncbi.nlm.nih.gov/${c.pmid}/`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center justify-between rounded-lg border border-[var(--border-soft)] bg-[var(--card)] px-3 py-1.5 transition hover:border-[var(--accent)]"
+                            >
+                              <span className="truncate pr-2 font-medium text-[var(--text)]">
+                                {c.title || `PMID: ${c.pmid}`}
+                              </span>
+                              <ExternalLink size={12} className="shrink-0 text-[var(--accent)]" />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              <div className="mt-5 rounded-2xl border border-[var(--border)] bg-[var(--card)]">
+              {/* CURATED REFERENCE LIBRARY */}
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-4 sm:px-5">
                   <div>
-                    <h3 className="text-[17px] font-bold">Reference Library</h3>
+                    <h3 className="text-[17px] font-bold">Curated Reference Library</h3>
                     <p className="mt-0.5 text-xs text-[var(--muted)]">
-                      {filteredItems.length} resources match your search.
+                      {filteredItems.length} core clinical pathways available.
                     </p>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
                     <Star size={14} className="text-[var(--accent)]" />
-                    Curated for clinicians
+                    Verified Protocols
                   </div>
                 </div>
 
@@ -249,7 +367,11 @@ export default function MedicalKnowledge() {
                           <button
                             type="button"
                             onClick={() => toggleBookmark(item.title)}
-                            className={`rounded-lg p-2 transition ${isBookmarked ? "bg-[var(--accent-soft)] text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--card-hover)] hover:text-[var(--text)]"}`}
+                            className={`rounded-lg p-2 transition ${
+                              isBookmarked
+                                ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                                : "text-[var(--muted)] hover:bg-[var(--card-hover)] hover:text-[var(--text)]"
+                            }`}
                             aria-label={isBookmarked ? "Remove bookmark" : "Bookmark resource"}
                           >
                             <Bookmark size={16} fill={isBookmarked ? "currentColor" : "none"} />
@@ -260,7 +382,10 @@ export default function MedicalKnowledge() {
 
                         <div className="mt-4 flex flex-wrap gap-1.5">
                           {item.tags.map((tag) => (
-                            <span key={tag} className="rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-[10px] font-medium text-[var(--accent)]">
+                            <span
+                              key={tag}
+                              className="rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-[10px] font-medium text-[var(--accent)]"
+                            >
                               {tag}
                             </span>
                           ))}
@@ -268,46 +393,32 @@ export default function MedicalKnowledge() {
 
                         <div className="mt-4 flex items-center justify-between border-t border-[var(--border)] pt-3">
                           <div className="flex items-center gap-3 text-[10px] text-[var(--muted)]">
-                            <span className="flex items-center gap-1"><Clock3 size={12} /> {item.readTime}</span>
+                            <span className="flex items-center gap-1">
+                              <Clock3 size={12} /> {item.readTime}
+                            </span>
                             <span>Updated {item.updated}</span>
                           </div>
                           <button
                             type="button"
+                            onClick={() => {
+                              setPubMedQuery(item.title);
+                              handlePubMedSearch();
+                            }}
                             className="flex items-center gap-1.5 text-xs font-semibold text-[var(--accent)] hover:brightness-110"
                           >
-                            Open reference
+                            Query PubMed
                             <ExternalLink size={13} />
                           </button>
                         </div>
                       </article>
                     );
                   })}
-
-                  {!filteredItems.length && (
-                    <div className="lg:col-span-2 rounded-2xl border border-dashed border-[var(--border-soft)] p-10 text-center">
-                      <BookOpen className="mx-auto text-[var(--muted)]" size={28} />
-                      <p className="mt-3 text-sm font-semibold">No references found</p>
-                      <p className="mt-1 text-xs text-[var(--muted)]">Try a different search term or category.</p>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
           </section>
         </main>
       </div>
-    </div>
-  );
-}
-
-function KnowledgeStat({ icon: Icon, label, value }) {
-  return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-3">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-[var(--muted)]">{label}</span>
-        <Icon size={17} className="text-[var(--accent)]" />
-      </div>
-      <p className="mt-2 text-2xl font-bold">{value}</p>
     </div>
   );
 }

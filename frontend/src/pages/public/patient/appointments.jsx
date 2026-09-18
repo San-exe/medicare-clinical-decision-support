@@ -26,6 +26,7 @@ import {
   XCircle,
 } from "lucide-react";
 import patientService from "../../../services/patientService";
+import { useAuth } from "../../../_core/hooks/useAuth";
 
 const ThemeContext = createContext(null);
 
@@ -170,54 +171,19 @@ const navSections = [
   },
 ];
 
-const upcomingAppointments = [
-  {
-    id: 1,
-    doctor: "Dr. Anjali Sharma",
-    specialty: "Cardiologist",
-    date: "24 May 2026",
-    time: "10:30 AM",
-    hospital: "Apollo Hospital, Mumbai",
-    avatar: "https://i.pravatar.cc/100?img=47",
-  },
-  {
-    id: 2,
-    doctor: "Dr. Rohan Mehta",
-    specialty: "Endocrinologist",
-    date: "05 Jun 2026",
-    time: "11:45 AM",
-    hospital: "Fortis Hospital, Mumbai",
-    avatar: "https://i.pravatar.cc/100?img=68",
-  },
-];
-
-const appointmentHistory = [
-  {
-    doctor: "Dr. Anjali Sharma",
-    specialty: "Cardiologist",
-    date: "10 May 2026",
-    status: "Completed",
-  },
-  {
-    doctor: "Dr. Vivek Patel",
-    specialty: "General Physician",
-    date: "26 Apr 2026",
-    status: "Completed",
-  },
-  {
-    doctor: "Dr. Neha Verma",
-    specialty: "Dermatologist",
-    date: "12 Apr 2026",
-    status: "Cancelled",
-  },
-];
-
 function isActivePath(currentPath, route) {
   return currentPath.replace(/\/$/, "") === route.replace(/\/$/, "");
 }
 
 function Header() {
   const { isDark: darkMode, toggleTheme } = useTheme();
+  const { user } = useAuth();
+  const displayName =
+    user?.full_name ||
+    (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : null) ||
+    user?.email ||
+    "Patient";
+
   return (
     <header
       className={`flex h-[78px] shrink-0 items-center justify-between border-b px-8 ${
@@ -298,15 +264,9 @@ function Header() {
           className="flex items-center gap-3"
         >
           <div
-            className={`h-10 w-10 overflow-hidden rounded-full ${
-              darkMode ? "bg-slate-700" : "bg-slate-200"
-            }`}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-white font-semibold text-xs"
           >
-            <img
-              src="https://i.pravatar.cc/100?img=12"
-              alt="Patient profile"
-              className="h-full w-full object-cover"
-            />
+            {displayName.slice(0, 2).toUpperCase()}
           </div>
 
           <span
@@ -314,7 +274,7 @@ function Header() {
               darkMode ? "text-slate-200" : "text-slate-800"
             }`}
           >
-            John Doe
+            {displayName}
           </span>
 
           <ChevronDown
@@ -385,15 +345,19 @@ function StatCard({ darkMode, icon, label, value, suffix }) {
 function AppointmentPerson({ appointment, darkMode }) {
   const doctorName = appointment.doctor || appointment.doctor_name || "Dr. Specialist";
   const specialty = appointment.specialty || "Clinical Consultation";
-  const avatar = appointment.avatar || "https://i.pravatar.cc/100?img=12";
+  const initial = doctorName.replace(/^Dr\.?\s*/i, "").charAt(0) || "D";
 
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <img
-        src={avatar}
-        alt={doctorName}
-        className="h-9 w-9 shrink-0 rounded-full object-cover"
-      />
+      <div
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold uppercase ${
+          darkMode
+            ? "bg-emerald-900/60 text-emerald-300 border border-emerald-700/50"
+            : "bg-emerald-100 text-emerald-800"
+        }`}
+      >
+        {initial}
+      </div>
 
       <div className="min-w-0">
         <p
@@ -479,7 +443,6 @@ function AppointmentsContent() {
         date: d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
         time: d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
         hospital: a.reason || "MediCare Center",
-        avatar: `https://i.pravatar.cc/100?img=${(a.id % 60) + 1}`,
         status: a.status,
       };
     });
@@ -498,7 +461,6 @@ function AppointmentsContent() {
         date: d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
         time: d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
         hospital: a.reason || "MediCare Center",
-        avatar: `https://i.pravatar.cc/100?img=${(a.id % 60) + 1}`,
         status: a.status,
       };
     });
@@ -832,7 +794,6 @@ function AppointmentsContent() {
                             date: item.date,
                             time: "Previous visit",
                             hospital: "MediCare Clinic",
-                            avatar: "https://i.pravatar.cc/100?img=12",
                           })
                         }
                         className="text-right font-medium text-emerald-500 hover:text-emerald-600"
@@ -895,12 +856,7 @@ function AppointmentsContent() {
               {selectedAppointment ? (
                 <div className="mt-5">
                   <AppointmentPerson
-                    appointment={{
-                      ...selectedAppointment,
-                      avatar:
-                        selectedAppointment.avatar ||
-                        "https://i.pravatar.cc/100?img=12",
-                    }}
+                    appointment={selectedAppointment}
                     darkMode={darkMode}
                   />
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Search,
   Bell,
@@ -15,79 +15,15 @@ import {
   FilePenLine,
   Stethoscope,
   Save,
+  X,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 
 import Sidebar from "./sidebar";
 import { useTheme } from "../ThemeContext";
-
-const notes = [
-  {
-    id: "CN-2048",
-    patient: "Aarav Mehta",
-    date: "23 Aug 2026",
-    time: "09:24 AM",
-    type: "Follow-up",
-    title: "Diabetes follow-up",
-    status: "Draft",
-    preview:
-      "Patient reports improved glucose control with current medication...",
-  },
-  {
-    id: "CN-2047",
-    patient: "Priya Sharma",
-    date: "23 Aug 2026",
-    time: "08:58 AM",
-    type: "Consultation",
-    title: "Routine consultation",
-    status: "Signed",
-    preview:
-      "Patient presented for routine review. No new acute complaints...",
-  },
-  {
-    id: "CN-2046",
-    patient: "Rohan Desai",
-    date: "22 Aug 2026",
-    time: "04:35 PM",
-    type: "Cardiology",
-    title: "Cardiology review",
-    status: "Signed",
-    preview:
-      "Blood pressure remains elevated. Discussed medication adherence...",
-  },
-  {
-    id: "CN-2045",
-    patient: "Ananya Patel",
-    date: "22 Aug 2026",
-    time: "02:12 PM",
-    type: "Follow-up",
-    title: "Post-treatment review",
-    status: "Signed",
-    preview:
-      "Symptoms have improved since previous visit. Continue current plan...",
-  },
-  {
-    id: "CN-2044",
-    patient: "Vikram Singh",
-    date: "21 Aug 2026",
-    time: "11:47 AM",
-    type: "Hypertension",
-    title: "Blood pressure review",
-    status: "Draft",
-    preview:
-      "Recent home readings reviewed. Continue monitoring and lifestyle changes...",
-  },
-  {
-    id: "CN-2043",
-    patient: "Meera Kapoor",
-    date: "21 Aug 2026",
-    time: "10:15 AM",
-    type: "Consultation",
-    title: "Thyroid follow-up",
-    status: "Signed",
-    preview:
-      "Latest thyroid function results reviewed with the patient...",
-  },
-];
+import { useAuth } from "../../../_core/hooks/useAuth";
+import doctorService from "../../../services/doctorService";
 
 function StatusBadge({ status }) {
   if (status === "Signed") {
@@ -109,9 +45,119 @@ function StatusBadge({ status }) {
 
 export default function ClinicalNotes() {
   const { isDark, toggleTheme } = useTheme();
+  const { user } = useAuth();
 
+  const [notes, setNotes] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
+
+  // Create Note Modal State
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState("");
+  const [diagnosis, setDiagnosis] = useState("");
+  const [noteContent, setNoteContent] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
+  const [modalError, setModalError] = useState("");
+
+  // View Note Modal State
+  const [viewingNote, setViewingNote] = useState(null);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const patientList = await doctorService.getPatients();
+      const validPatients = Array.isArray(patientList) ? patientList : patientList?.results || [];
+      setPatients(validPatients);
+
+      if (validPatients.length > 0 && !selectedPatientId) {
+        setSelectedPatientId(String(validPatients[0].id));
+      }
+
+      const allNotes = [];
+      for (const p of validPatients) {
+        try {
+          const pNotes = await doctorService.getPatientNotes(p.id);
+          const list = Array.isArray(pNotes) ? pNotes : [];
+          list.forEach((n) => {
+            const created = new Date(n.created_at);
+            allNotes.push({
+              id: `CN-${n.id}`,
+              rawId: n.id,
+              patientId: p.id,
+              patient: `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.email,
+              patientEmail: p.email,
+              date: !isNaN(created.getTime())
+                ? created.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })
+                : "Recent",
+              time: !isNaN(created.getTime())
+                ? created.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+                : "10:00 AM",
+              rawDate: created,
+              type: n.diagnosis || "Observation",
+              title: n.diagnosis ? `${n.diagnosis} Review` : "Clinical Observation Note",
+              status: "Signed",
+              preview: n.note,
+            });
+          });
+        } catch (err) {
+          console.warn(`Could not load notes for patient ${p.id}:`, err);
+        }
+      }
+      setNotes(allNotes);
+    } catch (err) {
+      console.error("Failed to load clinical notes or patients:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleCreateNote = async (e) => {
+    e.preventDefault();
+    if (!selectedPatientId || !noteContent.trim()) {
+      setModalError("Please select a patient and enter clinical note content.");
+      return;
+    }
+
+    try {
+      setSavingNote(true);
+      setModalError("");
+      await doctorService.createClinicalNote(selectedPatientId, {
+        note: noteContent.trim(),
+        diagnosis: diagnosis.trim() || "General Consultation",
+      });
+
+      setIsCreateOpen(false);
+      setDiagnosis("");
+      setNoteContent("");
+      await loadData();
+    } catch (err) {
+      console.error("Failed to create clinical note:", err);
+      setModalError(
+        err.response?.data?.message ||
+        err.response?.data?.error?.message ||
+        "Failed to save clinical note. Ensure doctor has active authorization for this patient."
+      );
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
+  const doctorName = user?.last_name
+    ? `Dr. ${user.last_name}`
+    : user?.first_name
+    ? `Dr. ${user.first_name}`
+    : user?.full_name
+    ? `Dr. ${user.full_name}`
+    : "Doctor";
+
+  const todayDateStr = new Date().toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
+  const todayNotesCount = notes.filter((n) => n.date === todayDateStr).length;
 
   const filteredNotes = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -124,12 +170,11 @@ export default function ClinicalNotes() {
         note.type.toLowerCase().includes(query) ||
         note.id.toLowerCase().includes(query);
 
-      const matchesFilter =
-        filter === "All" || note.status === filter;
+      const matchesFilter = filter === "All" || note.status === filter;
 
       return matchesSearch && matchesFilter;
     });
-  }, [search, filter]);
+  }, [notes, search, filter]);
 
   return (
     <div
@@ -137,32 +182,24 @@ export default function ClinicalNotes() {
       style={{ colorScheme: isDark ? "dark" : "light" }}
     >
       <div className="flex h-full min-h-0">
-
         {/* GLOBAL SIDEBAR */}
         <Sidebar />
 
         <main className="ml-[217px] min-h-0 min-w-0 w-[calc(100%-217px)] flex-none overflow-hidden">
-
           {/* HEADER */}
           <header className="flex h-[72px] shrink-0 items-center justify-between border-b border-[var(--border)] px-5 sm:px-7 lg:px-8">
-
             <h1 className="text-[26px] font-bold tracking-tight">
               Clinical Notes
             </h1>
 
             <div className="flex items-center gap-3">
-
               {/* SEARCH */}
               <div className="hidden h-10 w-[280px] items-center gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--card-soft)] px-4 md:flex">
-                <Search
-                  size={18}
-                  className="text-[var(--muted)]"
-                />
-
+                <Search size={18} className="text-[var(--muted)]" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search notes..."
+                  placeholder="Search notes, patients, diagnosis..."
                   className="w-full bg-transparent text-sm outline-none placeholder:text-[var(--muted)]"
                 />
               </div>
@@ -173,9 +210,7 @@ export default function ClinicalNotes() {
                 onClick={toggleTheme}
                 className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-soft)] bg-[var(--card-soft)] text-[var(--accent)]"
               >
-                <span className="text-xl">
-                  {isDark ? "☼" : "☾"}
-                </span>
+                <span className="text-xl">{isDark ? "☼" : "☾"}</span>
               </button>
 
               {/* NOTIFICATIONS */}
@@ -184,437 +219,399 @@ export default function ClinicalNotes() {
                 className="relative p-2 text-[var(--text-secondary)]"
               >
                 <Bell size={20} />
-
                 <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--accent)]" />
               </button>
 
               {/* PROFILE */}
               <div className="hidden items-center gap-2 sm:flex">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent-soft)]">
-                  <Stethoscope
-                    size={18}
-                    className="text-[var(--accent)]"
-                  />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent-soft)] font-semibold text-xs text-[var(--accent)]">
+                  {doctorName.slice(0, 3)}
                 </div>
-
-                <ChevronDown
-                  size={15}
-                  className="text-[var(--muted)]"
-                />
+                <span className="text-xs font-semibold">{doctorName}</span>
+                <ChevronDown size={15} className="text-[var(--muted)]" />
               </div>
-
             </div>
           </header>
 
           {/* PAGE */}
           <section className="grid h-[calc(100vh-72px)] min-h-0 grid-rows-[auto_auto_minmax(0,1fr)] gap-4 overflow-hidden px-5 py-5 sm:px-7 lg:px-8">
-
             {/* INTRO */}
             <div className="flex items-end justify-between gap-4">
-
               <div>
                 <h2 className="text-[22px] font-bold">
                   Patient Clinical Notes
                 </h2>
-
                 <p className="mt-1 text-sm text-[var(--muted)]">
-                  Create, review, and manage clinical documentation.
+                  Create, review, and manage verified EHR clinical documentation.
                 </p>
               </div>
 
               <button
                 type="button"
-                className="hidden items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[#06231d] sm:flex"
+                onClick={() => setIsCreateOpen(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[#06231d] shadow-sm transition hover:opacity-95"
               >
                 <Plus size={17} />
                 New Clinical Note
               </button>
-
             </div>
 
-            {/* SUMMARY */}
+            {/* SUMMARY CARDS */}
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-
               {/* TOTAL */}
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-3">
-
                 <div className="flex items-center justify-between">
-
-                  <span className="text-xs text-[var(--muted)]">
-                    Total Notes
-                  </span>
-
-                  <FileText
-                    size={17}
-                    className="text-[var(--accent)]"
-                  />
-
+                  <span className="text-xs text-[var(--muted)]">Total Notes</span>
+                  <FileText size={17} className="text-[var(--accent)]" />
                 </div>
-
                 <p className="mt-2 text-2xl font-bold">
-                  326
+                  {String(notes.length).padStart(2, "0")}
                 </p>
-
                 <p className="mt-1 text-[10px] text-[var(--muted)]">
-                  All clinical documentation
+                  Recorded in database
                 </p>
-
               </div>
 
               {/* TODAY */}
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-3">
-
                 <div className="flex items-center justify-between">
-
-                  <span className="text-xs text-[var(--muted)]">
-                    Today's Notes
-                  </span>
-
-                  <CalendarDays
-                    size={17}
-                    className="text-blue-500"
-                  />
-
+                  <span className="text-xs text-[var(--muted)]">Today's Notes</span>
+                  <CalendarDays size={17} className="text-blue-500" />
                 </div>
-
                 <p className="mt-2 text-2xl font-bold">
-                  08
+                  {String(todayNotesCount).padStart(2, "0")}
                 </p>
-
                 <p className="mt-1 text-[10px] text-blue-500">
-                  3 completed today
+                  Logged today
                 </p>
-
               </div>
 
               {/* DRAFTS */}
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-3">
-
                 <div className="flex items-center justify-between">
-
-                  <span className="text-xs text-[var(--muted)]">
-                    Drafts
-                  </span>
-
-                  <Edit3
-                    size={17}
-                    className="text-amber-500"
-                  />
-
+                  <span className="text-xs text-[var(--muted)]">Drafts</span>
+                  <Edit3 size={17} className="text-amber-500" />
                 </div>
-
-                <p className="mt-2 text-2xl font-bold">
-                  05
-                </p>
-
+                <p className="mt-2 text-2xl font-bold">00</p>
                 <p className="mt-1 text-[10px] text-amber-500">
-                  Awaiting completion
+                  Awaiting review
                 </p>
-
               </div>
 
               {/* SIGNED */}
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-3">
-
                 <div className="flex items-center justify-between">
-
-                  <span className="text-xs text-[var(--muted)]">
-                    Signed
-                  </span>
-
-                  <CheckCircle2
-                    size={17}
-                    className="text-emerald-500"
-                  />
-
+                  <span className="text-xs text-[var(--muted)]">Signed</span>
+                  <CheckCircle2 size={17} className="text-emerald-500" />
                 </div>
-
                 <p className="mt-2 text-2xl font-bold">
-                  321
+                  {String(notes.length).padStart(2, "0")}
                 </p>
-
                 <p className="mt-1 text-[10px] text-emerald-500">
-                  Completed records
+                  Completed & verified
                 </p>
-
               </div>
-
             </div>
 
             {/* NOTES PANEL */}
             <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)]">
-
               {/* TOOLBAR */}
               <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
-
                 <div className="flex items-center gap-2">
-
-                  <FileText
-                    size={16}
-                    className="text-[var(--muted)]"
-                  />
-
-                  <span className="text-sm font-medium">
-                    Recent Notes
-                  </span>
-
+                  <FileText size={16} className="text-[var(--muted)]" />
+                  <span className="text-sm font-medium">Recent Notes</span>
                   <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--accent)]">
                     {filteredNotes.length}
                   </span>
-
                 </div>
 
                 <div className="flex items-center gap-1.5">
-
-                  {["All", "Draft", "Signed"].map(
-                    (item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => setFilter(item)}
-                        className={`
-                          rounded-lg
-                          px-3
-                          py-1.5
-                          text-xs
-                          font-medium
-                          transition
-                          ${
-                            filter === item
-                              ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                              : "text-[var(--muted)] hover:bg-[var(--card-soft)]"
-                          }
-                        `}
-                      >
-                        {item}
-                      </button>
-                    )
-                  )}
-
+                  {["All", "Signed"].map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setFilter(item)}
+                      className={`
+                        rounded-lg px-3 py-1.5 text-xs font-medium transition
+                        ${
+                          filter === item
+                            ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                            : "text-[var(--muted)] hover:bg-[var(--card-soft)]"
+                        }
+                      `}
+                    >
+                      {item}
+                    </button>
+                  ))}
                 </div>
-
               </div>
 
               {/* TABLE */}
-              <div className="min-h-0 flex-1 overflow-hidden">
-
-                <table className="w-full table-fixed border-collapse">
-
-                  <thead>
-                    <tr className="border-b border-[var(--border)]">
-
-                      <th className="w-[22%] px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)]">
-                        Patient
-                      </th>
-
-                      <th className="w-[24%] px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)]">
-                        Clinical Note
-                      </th>
-
-                      <th className="hidden w-[14%] px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)] sm:table-cell">
-                        Type
-                      </th>
-
-                      <th className="hidden w-[15%] px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)] md:table-cell">
-                        Date
-                      </th>
-
-                      <th className="hidden w-[13%] px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)] lg:table-cell">
-                        Status
-                      </th>
-
-                      <th className="w-[12%] px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)]">
-                        Action
-                      </th>
-
-                    </tr>
-                  </thead>
-
-                  <tbody>
-
-                    {filteredNotes.map((note) => (
-                      <tr
-                        key={note.id}
-                        className="border-b border-[var(--border)] transition hover:bg-[var(--card-soft)] last:border-b-0"
-                      >
-
-                        {/* PATIENT */}
-                        <td className="px-4 py-3">
-
-                          <div className="flex min-w-0 items-center gap-3">
-
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)]">
-                              <UserRound
-                                size={16}
-                                className="text-[var(--accent)]"
-                              />
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                {loading ? (
+                  <div className="flex h-full min-h-[200px] flex-col items-center justify-center">
+                    <Loader2 size={24} className="animate-spin text-[var(--accent)]" />
+                    <p className="mt-2 text-xs text-[var(--muted)]">Loading clinical notes from database...</p>
+                  </div>
+                ) : filteredNotes.length === 0 ? (
+                  <div className="flex h-full min-h-[220px] items-center justify-center">
+                    <div className="text-center">
+                      <FileText size={34} className="mx-auto text-[var(--muted)]" />
+                      <p className="mt-3 text-sm font-medium">No clinical notes found</p>
+                      <p className="mt-1 text-xs text-[var(--muted)]">
+                        Click "New Clinical Note" above to record a consultation note for an authorized patient.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <table className="w-full table-fixed border-collapse">
+                    <thead>
+                      <tr className="border-b border-[var(--border)]">
+                        <th className="w-[22%] px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)]">
+                          Patient
+                        </th>
+                        <th className="w-[28%] px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)]">
+                          Clinical Note
+                        </th>
+                        <th className="hidden w-[14%] px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)] sm:table-cell">
+                          Diagnosis
+                        </th>
+                        <th className="hidden w-[15%] px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)] md:table-cell">
+                          Date & Time
+                        </th>
+                        <th className="hidden w-[11%] px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)] lg:table-cell">
+                          Status
+                        </th>
+                        <th className="w-[10%] px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)]">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredNotes.map((note) => (
+                        <tr
+                          key={note.id}
+                          className="border-b border-[var(--border)] transition hover:bg-[var(--card-soft)] last:border-b-0"
+                        >
+                          {/* PATIENT */}
+                          <td className="px-4 py-3">
+                            <div className="flex min-w-0 items-center gap-3">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)]">
+                                <UserRound size={16} className="text-[var(--accent)]" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold">{note.patient}</p>
+                                <p className="mt-0.5 text-[10px] text-[var(--muted)]">{note.id}</p>
+                              </div>
                             </div>
+                          </td>
 
-                            <div className="min-w-0">
+                          {/* NOTE */}
+                          <td className="px-4 py-3">
+                            <p className="truncate text-sm font-medium">{note.title}</p>
+                            <p className="mt-1 truncate text-[10px] text-[var(--muted)]">{note.preview}</p>
+                          </td>
 
-                              <p className="truncate text-sm font-semibold">
-                                {note.patient}
-                              </p>
+                          {/* TYPE / DIAGNOSIS */}
+                          <td className="hidden px-4 py-3 sm:table-cell">
+                            <span className="rounded-lg bg-[var(--card-soft)] px-2.5 py-1 text-[10px] font-medium text-[var(--text-secondary)]">
+                              {note.type}
+                            </span>
+                          </td>
 
-                              <p className="mt-0.5 text-[10px] text-[var(--muted)]">
-                                {note.id}
-                              </p>
-
+                          {/* DATE */}
+                          <td className="hidden px-4 py-3 md:table-cell">
+                            <div className="flex items-center gap-2">
+                              <CalendarDays size={13} className="text-[var(--muted)]" />
+                              <div>
+                                <p className="text-xs">{note.date}</p>
+                                <p className="mt-0.5 flex items-center gap-1 text-[10px] text-[var(--muted)]">
+                                  <Clock3 size={10} />
+                                  {note.time}
+                                </p>
+                              </div>
                             </div>
+                          </td>
 
-                          </div>
+                          {/* STATUS */}
+                          <td className="hidden px-4 py-3 lg:table-cell">
+                            <StatusBadge status={note.status} />
+                          </td>
 
-                        </td>
-
-                        {/* NOTE */}
-                        <td className="px-4 py-3">
-
-                          <p className="truncate text-sm font-medium">
-                            {note.title}
-                          </p>
-
-                          <p className="mt-1 truncate text-[10px] text-[var(--muted)]">
-                            {note.preview}
-                          </p>
-
-                        </td>
-
-                        {/* TYPE */}
-                        <td className="hidden px-4 py-3 sm:table-cell">
-
-                          <span className="rounded-lg bg-[var(--card-soft)] px-2.5 py-1 text-[10px] font-medium text-[var(--text-secondary)]">
-                            {note.type}
-                          </span>
-
-                        </td>
-
-                        {/* DATE */}
-                        <td className="hidden px-4 py-3 md:table-cell">
-
-                          <div className="flex items-center gap-2">
-
-                            <CalendarDays
-                              size={13}
-                              className="text-[var(--muted)]"
-                            />
-
-                            <div>
-
-                              <p className="text-xs">
-                                {note.date}
-                              </p>
-
-                              <p className="mt-0.5 flex items-center gap-1 text-[10px] text-[var(--muted)]">
-                                <Clock3 size={10} />
-                                {note.time}
-                              </p>
-
-                            </div>
-
-                          </div>
-
-                        </td>
-
-                        {/* STATUS */}
-                        <td className="hidden px-4 py-3 lg:table-cell">
-
-                          <StatusBadge status={note.status} />
-
-                        </td>
-
-                        {/* ACTIONS */}
-                        <td className="px-4 py-3">
-
-                          <div className="flex items-center justify-end gap-1">
-
+                          {/* ACTIONS */}
+                          <td className="px-4 py-3 text-right">
                             <button
                               type="button"
+                              onClick={() => setViewingNote(note)}
                               title="View note"
-                              className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
                             >
                               <Eye size={15} />
                             </button>
-
-                            <button
-                              type="button"
-                              title="Edit note"
-                              className="hidden h-8 w-8 items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] sm:flex"
-                            >
-                              <Edit3 size={15} />
-                            </button>
-
-                            <button
-                              type="button"
-                              className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--card-soft)] hover:text-[var(--text)]"
-                            >
-                              <MoreHorizontal size={15} />
-                            </button>
-
-                          </div>
-
-                        </td>
-
-                      </tr>
-                    ))}
-
-                  </tbody>
-
-                </table>
-
-                {filteredNotes.length === 0 && (
-                  <div className="flex h-full items-center justify-center">
-
-                    <div className="text-center">
-
-                      <FileText
-                        size={34}
-                        className="mx-auto text-[var(--muted)]"
-                      />
-
-                      <p className="mt-3 text-sm font-medium">
-                        No clinical notes found
-                      </p>
-
-                      <p className="mt-1 text-xs text-[var(--muted)]">
-                        Try another search or filter.
-                      </p>
-
-                    </div>
-
-                  </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 )}
-
               </div>
 
               {/* FOOTER */}
               <div className="flex shrink-0 items-center justify-between border-t border-[var(--border)] px-4 py-2.5">
-
                 <div className="flex items-center gap-2 text-[10px] text-[var(--muted)]">
-
-                  <Save
-                    size={13}
-                    className="text-emerald-500"
-                  />
-
-                  Draft changes are saved automatically.
-
+                  <Save size={13} className="text-emerald-500" />
+                  EHR notes are saved directly to PostgreSQL clinical store.
                 </div>
-
                 <div className="flex items-center gap-2 text-[10px] text-[var(--muted)]">
-
                   <Clock3 size={12} />
-
-                  Last updated moments ago
-
+                  Connected &bull; Doctor Decision Support
                 </div>
-
               </div>
-
             </div>
-
           </section>
         </main>
       </div>
+
+      {/* CREATE NOTE MODAL */}
+      {isCreateOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
+              <h3 className="text-lg font-bold">New Clinical Observation Note</h3>
+              <button
+                type="button"
+                onClick={() => setIsCreateOpen(false)}
+                className="text-[var(--muted)] hover:text-[var(--text)]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {modalError && (
+              <div className="mt-4 flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-500">
+                <AlertCircle size={15} className="shrink-0" />
+                {modalError}
+              </div>
+            )}
+
+            <form onSubmit={handleCreateNote} className="mt-4 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--text)]">
+                  Authorized Patient
+                </label>
+                <select
+                  value={selectedPatientId}
+                  onChange={(e) => setSelectedPatientId(e.target.value)}
+                  className="mt-1.5 w-full rounded-xl border border-[var(--border-soft)] bg-[var(--card-soft)] px-3 py-2 text-xs outline-none"
+                >
+                  {patients.length === 0 ? (
+                    <option value="">No authorized patients found</option>
+                  ) : (
+                    patients.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.first_name || p.last_name
+                          ? `${p.first_name || ""} ${p.last_name || ""}`.trim()
+                          : p.email}{" "}
+                        (ID: {p.id})
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[var(--text)]">
+                  Working Diagnosis / Clinical Category
+                </label>
+                <input
+                  type="text"
+                  value={diagnosis}
+                  onChange={(e) => setDiagnosis(e.target.value)}
+                  placeholder="e.g. Hypertension Review, Type 2 Diabetes, Upper Respiratory"
+                  className="mt-1.5 w-full rounded-xl border border-[var(--border-soft)] bg-[var(--card-soft)] px-3 py-2 text-xs outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[var(--text)]">
+                  Clinical Observation & Findings
+                </label>
+                <textarea
+                  rows={4}
+                  value={noteContent}
+                  onChange={(e) => setNoteContent(e.target.value)}
+                  placeholder="Enter detailed clinical observation, examination findings, medication adherence, and plan..."
+                  className="mt-1.5 w-full rounded-xl border border-[var(--border-soft)] bg-[var(--card-soft)] p-3 text-xs outline-none"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateOpen(false)}
+                  className="rounded-xl border border-[var(--border-soft)] px-4 py-2 text-xs font-medium text-[var(--muted)] hover:bg-[var(--card-soft)]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingNote || patients.length === 0}
+                  className="rounded-xl bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-[#06231d] transition hover:opacity-90 disabled:opacity-50"
+                >
+                  {savingNote ? "Saving Note..." : "Sign & Record Note"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW NOTE MODAL */}
+      {viewingNote && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
+              <div>
+                <h3 className="text-base font-bold">{viewingNote.title}</h3>
+                <p className="text-xs text-[var(--muted)]">
+                  Patient: {viewingNote.patient} &bull; {viewingNote.date} {viewingNote.time}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingNote(null)}
+                className="text-[var(--muted)] hover:text-[var(--text)]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              <div className="flex gap-2">
+                <span className="rounded-lg bg-[var(--card-soft)] px-2.5 py-1 text-xs font-medium text-[var(--text-secondary)]">
+                  Category: {viewingNote.type}
+                </span>
+                <StatusBadge status={viewingNote.status} />
+              </div>
+
+              <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--card-soft)] p-4 text-xs leading-relaxed">
+                <p className="whitespace-pre-wrap">{viewingNote.preview}</p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setViewingNote(null)}
+                className="rounded-xl bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-[#06231d]"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -27,6 +27,8 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+import { useAuth } from "../../../_core/hooks/useAuth";
+import patientService from "../../../services/patientService";
 
 const ROUTES = {
   dashboard: "/patient/dashboard",
@@ -80,71 +82,18 @@ const navSections = [
   },
 ];
 
-const medicineOptions = [
-  "Metformin",
-  "Atorvastatin",
+const defaultCommonMeds = [
   "Warfarin",
   "Aspirin",
+  "Metformin",
+  "Atorvastatin",
   "Ibuprofen",
   "Paracetamol",
   "Omeprazole",
   "Cetirizine",
   "Amoxicillin",
+  "Lisinopril",
 ];
-
-const interactionDatabase = {
-  "Metformin|Aspirin": {
-    level: "Moderate",
-    title: "Monitor for increased side effects",
-    summary:
-      "These medicines may be used together in some clinical situations, but a clinician should review the full medication list, medical history and dosing.",
-    details: [
-      "Check the reason both medicines are being taken.",
-      "Review kidney function and other risk factors with the prescribing clinician.",
-      "Do not change or stop a prescribed medicine without professional guidance.",
-    ],
-  },
-  "Atorvastatin|Grapefruit": {
-    level: "Moderate",
-    title: "May increase atorvastatin exposure",
-    summary:
-      "Grapefruit products can affect the metabolism of some statins, including atorvastatin.",
-    details: [
-      "Discuss regular grapefruit or grapefruit juice consumption with your clinician.",
-      "Ask whether a specific amount is appropriate for your treatment plan.",
-    ],
-  },
-  "Warfarin|Aspirin": {
-    level: "High",
-    title: "Higher bleeding risk",
-    summary:
-      "Combining anticoagulant and antiplatelet medicines can substantially increase bleeding risk in some patients.",
-    details: [
-      "Use this combination only under professional supervision.",
-      "Seek urgent care for signs of significant bleeding.",
-    ],
-  },
-  "Warfarin|Ibuprofen": {
-    level: "High",
-    title: "Higher bleeding risk",
-    summary:
-      "NSAIDs such as ibuprofen may increase bleeding risk when taken with warfarin.",
-    details: [
-      "Ask your clinician or pharmacist before using NSAIDs.",
-      "Review safer pain-relief options for your individual situation.",
-    ],
-  },
-  "Metformin|Ibuprofen": {
-    level: "Moderate",
-    title: "Use with clinical review",
-    summary:
-      "Certain pain medicines can affect kidney function, which can matter for patients taking metformin.",
-    details: [
-      "Review kidney function and hydration if these medicines are used together.",
-      "Use the lowest effective duration under professional advice.",
-    ],
-  },
-};
 
 function useDarkMode() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -280,6 +229,13 @@ function Sidebar({ darkMode }) {
 }
 
 function Header({ darkMode, setDarkMode }) {
+  const { user } = useAuth();
+  const displayName =
+    user?.full_name ||
+    (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : null) ||
+    user?.email ||
+    "Patient";
+
   return (
     <header
       className={`flex h-[78px] shrink-0 items-center justify-between border-b px-8 ${
@@ -338,31 +294,26 @@ function Header({ darkMode, setDarkMode }) {
         </button>
 
         <button
-  type="button"
-  className={`relative ${
-    darkMode ? "text-slate-300" : "text-slate-700"
-  }`}
-  aria-label="Notifications"
->
-  <Bell size={21} strokeWidth={1.7} />
+          type="button"
+          className={`relative ${
+            darkMode ? "text-slate-300" : "text-slate-700"
+          }`}
+          aria-label="Notifications"
+        >
+          <Bell size={21} strokeWidth={1.7} />
 
-  <span
-    className={`absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 ${
-      darkMode ? "border-[#111c1b]" : "border-white"
-    } bg-emerald-500`}
-  />
-</button>
+          <span
+            className={`absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 ${
+              darkMode ? "border-[#111c1b]" : "border-white"
+            } bg-emerald-500`}
+          />
+        </button>
+
         <Link to={ROUTES.settings} className="flex items-center gap-3">
           <div
-            className={`h-10 w-10 overflow-hidden rounded-full ${
-              darkMode ? "bg-slate-700" : "bg-slate-200"
-            }`}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-white font-semibold text-xs"
           >
-            <img
-              src="https://i.pravatar.cc/100?img=12"
-              alt="Patient profile"
-              className="h-full w-full object-cover"
-            />
+            {displayName.slice(0, 2).toUpperCase()}
           </div>
 
           <span
@@ -370,7 +321,7 @@ function Header({ darkMode, setDarkMode }) {
               darkMode ? "text-slate-200" : "text-slate-800"
             }`}
           >
-            John Doe
+            {displayName}
           </span>
 
           <ChevronDown
@@ -404,7 +355,7 @@ function SeverityBadge({ level, darkMode }) {
   );
 }
 
-function Selector({ label, value, onChange, darkMode }) {
+function Selector({ label, value, onChange, darkMode, options = [] }) {
   return (
     <label
       className={`block text-[9px] font-medium ${
@@ -412,21 +363,34 @@ function Selector({ label, value, onChange, darkMode }) {
       }`}
     >
       {label}
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className={`mt-1.5 w-full rounded-lg border px-3 py-2 text-[9px] outline-none ${
-          darkMode
-            ? "border-slate-700 bg-[#101918] text-slate-200"
-            : "border-slate-200 bg-white text-slate-700"
-        }`}
-      >
-        {medicineOptions.map((medicine) => (
-          <option key={medicine} value={medicine}>
-            {medicine}
-          </option>
-        ))}
-      </select>
+      <div className="mt-1.5 flex gap-2">
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={`min-w-0 flex-1 rounded-lg border px-3 py-2 text-[9px] outline-none ${
+            darkMode
+              ? "border-slate-700 bg-[#101918] text-slate-200"
+              : "border-slate-200 bg-white text-slate-700"
+          }`}
+        >
+          {options.map((medicine) => (
+            <option key={medicine} value={medicine}>
+              {medicine}
+            </option>
+          ))}
+        </select>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Or type drug..."
+          className={`w-[130px] shrink-0 rounded-lg border px-2.5 py-2 text-[9px] outline-none ${
+            darkMode
+              ? "border-slate-700 bg-[#101918] text-slate-200 placeholder:text-slate-600"
+              : "border-slate-200 bg-white text-slate-700 placeholder:text-slate-400"
+          }`}
+        />
+      </div>
     </label>
   );
 }
@@ -555,48 +519,116 @@ function ResultPanel({ result, darkMode }) {
 
 export default function DrugInteractions() {
   const [darkMode, setDarkMode] = useDarkMode();
-  const [medicineA, setMedicineA] = useState("Metformin");
+  const [medicineA, setMedicineA] = useState("Warfarin");
   const [medicineB, setMedicineB] = useState("Aspirin");
   const [result, setResult] = useState(null);
   const [recentChecks, setRecentChecks] = useState([]);
+  const [patientMeds, setPatientMeds] = useState([]);
+  const [checking, setChecking] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const canCheck = medicineA && medicineB && medicineA !== medicineB;
+  useEffect(() => {
+    async function loadMeds() {
+      try {
+        const meds = await patientService.getMedications();
+        const list = Array.isArray(meds) ? meds : meds?.results || [];
+        const names = list.map((m) => m.name).filter(Boolean);
+        setPatientMeds(names);
+        if (names.length >= 2) {
+          setMedicineA(names[0]);
+          setMedicineB(names[1]);
+        } else if (names.length === 1) {
+          setMedicineA(names[0]);
+        }
+      } catch (e) {
+        console.warn("Could not fetch patient medications for options:", e);
+      }
+    }
+    loadMeds();
+  }, []);
 
-  const findInteraction = () => {
-    if (!canCheck) return;
+  const drugOptions = useMemo(() => {
+    return Array.from(new Set([...patientMeds, ...defaultCommonMeds]));
+  }, [patientMeds]);
 
-    const keys = [
-      `${medicineA}|${medicineB}`,
-      `${medicineB}|${medicineA}`,
-    ];
+  const canCheck =
+    medicineA &&
+    medicineB &&
+    medicineA.trim().toLowerCase() !== medicineB.trim().toLowerCase();
 
-    const found =
-      keys.map((key) => interactionDatabase[key]).find(Boolean) || {
-        level: "Low",
-        title: "No major interaction found in demo database",
-        summary:
-          "No specific interaction is listed for this pair in the current demonstration dataset. This does not rule out individual risks, duplicate ingredients, dose-related effects, or interactions with other medicines.",
-        details: [
-          "Check the full medication list, including supplements and non-prescription products.",
-          "Confirm the combination with a pharmacist or clinician if you are unsure.",
-          "Do not change a prescribed treatment based only on this tool.",
-        ],
-      };
+  const findInteraction = async () => {
+    if (!canCheck || checking) return;
+    setChecking(true);
+    setErrorMessage("");
 
-    const nextResult = {
-      ...found,
-      pair: `${medicineA} + ${medicineB}`,
-    };
+    try {
+      const data = await patientService.checkInteractions({
+        drugs: [medicineA.trim(), medicineB.trim()],
+      });
 
-    setResult(nextResult);
-    setRecentChecks((current) => [
-      nextResult,
-      ...current.filter((item) => item.pair !== nextResult.pair),
-    ].slice(0, 4));
+      const interactions = data?.interactions || [];
+      let formattedResult;
+
+      if (interactions.length > 0) {
+        const primary = interactions[0];
+        const severityLower = (primary.severity || "moderate").toLowerCase();
+        const level =
+          severityLower === "high" || severityLower === "critical" || severityLower === "severe"
+            ? "High"
+            : severityLower === "moderate"
+            ? "Moderate"
+            : "Low";
+
+        formattedResult = {
+          pair: `${primary.drug_a || medicineA} + ${primary.drug_b || medicineB}`,
+          level,
+          title: `${level.toUpperCase()} RISK: ${primary.drug_a || medicineA} & ${primary.drug_b || medicineB}`,
+          summary:
+            primary.explanation ||
+            `Potential pharmacological interaction identified between ${primary.drug_a} and ${primary.drug_b}.`,
+          details: [
+            `Evidence source: ${primary.evidence_source || "OpenFDA / DrugBank"}`,
+            `Assessed severity: ${primary.severity || level}`,
+            data.has_critical_interaction
+              ? "CRITICAL WARNING: Significant adverse interaction risk. Avoid co-administration unless explicitly monitored."
+              : "Review dosage schedule and monitor for potential adverse reactions.",
+            "Do not stop or adjust prescribed medication regimens without physician approval.",
+          ],
+        };
+      } else {
+        formattedResult = {
+          pair: `${medicineA} + ${medicineB}`,
+          level: "Low",
+          title: "No Significant Known Interaction Found",
+          summary: `No high-confidence adverse interaction was found between ${medicineA} and ${medicineB} in OpenFDA drug label records.`,
+          details: [
+            "Check full medication list, including over-the-counter medicines and vitamins.",
+            "Always consult your pharmacist or prescribing doctor when beginning new medications.",
+            "Individual patient factors, liver/renal clearance, and dosing may still impact safety.",
+          ],
+        };
+      }
+
+      setResult(formattedResult);
+      setRecentChecks((current) => [
+        formattedResult,
+        ...current.filter((item) => item.pair !== formattedResult.pair),
+      ].slice(0, 5));
+    } catch (err) {
+      console.error("Interaction check failed:", err);
+      setErrorMessage(
+        err.response?.data?.message ||
+        err.response?.data?.detail ||
+        "Failed to analyze drug interaction. Please verify the drug names."
+      );
+    } finally {
+      setChecking(false);
+    }
   };
 
   const clearCheck = () => {
     setResult(null);
+    setErrorMessage("");
   };
 
   return (
@@ -760,6 +792,7 @@ export default function DrugInteractions() {
                       setResult(null);
                     }}
                     darkMode={darkMode}
+                    options={drugOptions}
                   />
 
                   <div className="flex items-center gap-2">
@@ -786,11 +819,18 @@ export default function DrugInteractions() {
                       setResult(null);
                     }}
                     darkMode={darkMode}
+                    options={drugOptions}
                   />
 
                   {!canCheck && (
                     <p className="text-[8px] text-red-500">
-                      Choose two different items to run the check.
+                      Choose or enter two different medicines to run the check.
+                    </p>
+                  )}
+
+                  {errorMessage && (
+                    <p className="text-[8px] text-red-500">
+                      {errorMessage}
                     </p>
                   )}
 
@@ -798,14 +838,14 @@ export default function DrugInteractions() {
                     <button
                       type="button"
                       onClick={findInteraction}
-                      disabled={!canCheck}
+                      disabled={!canCheck || checking}
                       className={`flex-1 rounded-lg px-4 py-2.5 text-[10px] font-semibold text-white ${
-                        canCheck
+                        canCheck && !checking
                           ? "bg-emerald-500 hover:bg-emerald-600"
                           : "cursor-not-allowed bg-slate-400"
                       }`}
                     >
-                      Check Interaction
+                      {checking ? "Checking Clinical Sources..." : "Check Interaction"}
                     </button>
 
                     <button
@@ -835,9 +875,8 @@ export default function DrugInteractions() {
                       darkMode ? "text-slate-500" : "text-slate-600"
                     }`}
                   >
-                    This checker is a demonstration feature. It does not replace
-                    a pharmacist or clinician and does not evaluate every
-                    possible interaction.
+                    This interaction engine cross-references OpenFDA clinical label warnings and pharmacological databases.
+                    It supports clinical workflows but does not replace the professional judgment of a pharmacist or clinician.
                   </p>
                 </div>
               </section>

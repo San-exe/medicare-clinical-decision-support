@@ -282,7 +282,7 @@ export default function DoctorDashboard() {
     ? `Dr. ${user.first_name}`
     : user?.full_name
     ? `Dr. ${user.full_name}`
-    : "Dr. Gregory House";
+    : "Doctor";
 
   const liveStats = [
     {

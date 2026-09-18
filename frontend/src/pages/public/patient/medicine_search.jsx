@@ -26,6 +26,8 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import { useAuth } from "../../../_core/hooks/useAuth";
+import patientService from "../../../services/patientService";
 
 const ROUTES = {
   dashboard: "/patient/dashboard",
@@ -79,118 +81,11 @@ const navSections = [
   },
 ];
 
-const medicineDatabase = [
-  {
-    id: 1,
-    name: "Paracetamol",
-    generic: "Acetaminophen",
-    category: "Pain Relief",
-    dosage: "500 mg",
-    form: "Tablet",
-    description: "Commonly used for temporary relief of mild pain and fever.",
-    commonUses: ["Headache", "Fever", "Muscle pain"],
-    prescription: "OTC",
-    interactions: ["Warfarin", "Alcohol"],
-    precautions: "Use only as directed and avoid exceeding the labeled dose.",
-  },
-  {
-    id: 2,
-    name: "Metformin",
-    generic: "Metformin Hydrochloride",
-    category: "Diabetes",
-    dosage: "500 mg",
-    form: "Tablet",
-    description: "Medicine commonly prescribed to help control blood glucose.",
-    commonUses: ["Type 2 diabetes", "Blood glucose control"],
-    prescription: "Prescription",
-    interactions: ["Certain contrast agents"],
-    precautions: "Take according to your clinician's instructions.",
-  },
-  {
-    id: 3,
-    name: "Atorvastatin",
-    generic: "Atorvastatin Calcium",
-    category: "Cholesterol",
-    dosage: "10 mg",
-    form: "Tablet",
-    description: "Statin medicine used to lower cholesterol and cardiovascular risk.",
-    commonUses: ["High cholesterol", "Cardiovascular risk reduction"],
-    prescription: "Prescription",
-    interactions: ["Some antibiotics", "Grapefruit"],
-    precautions: "Discuss other medicines and liver conditions with your clinician.",
-  },
-  {
-    id: 4,
-    name: "Cetirizine",
-    generic: "Cetirizine Hydrochloride",
-    category: "Allergy",
-    dosage: "10 mg",
-    form: "Tablet",
-    description: "Antihistamine commonly used for allergy symptoms.",
-    commonUses: ["Sneezing", "Runny nose", "Itching"],
-    prescription: "OTC",
-    interactions: ["Alcohol", "Sedating medicines"],
-    precautions: "May cause drowsiness in some people.",
-  },
-  {
-    id: 5,
-    name: "Omeprazole",
-    generic: "Omeprazole",
-    category: "Digestive",
-    dosage: "20 mg",
-    form: "Capsule",
-    description: "Medicine that reduces stomach acid production.",
-    commonUses: ["Acid reflux", "Heartburn", "Peptic ulcer support"],
-    prescription: "OTC",
-    interactions: ["Some anticoagulants", "Certain antivirals"],
-    precautions: "Use the shortest duration appropriate for your condition unless prescribed otherwise.",
-  },
-  {
-    id: 6,
-    name: "Amoxicillin",
-    generic: "Amoxicillin",
-    category: "Antibiotic",
-    dosage: "500 mg",
-    form: "Capsule",
-    description: "Penicillin-type antibiotic used for certain bacterial infections.",
-    commonUses: ["Bacterial infections"],
-    prescription: "Prescription",
-    interactions: ["Warfarin", "Certain medicines"],
-    precautions: "Antibiotics should only be used when prescribed for an appropriate infection.",
-  },
-  {
-    id: 7,
-    name: "Vitamin D3",
-    generic: "Cholecalciferol",
-    category: "Supplement",
-    dosage: "1000 IU",
-    form: "Tablet",
-    description: "Vitamin D supplement used to support vitamin D levels.",
-    commonUses: ["Vitamin D support"],
-    prescription: "OTC",
-    interactions: ["Some supplements", "Certain medicines"],
-    precautions: "Dose should be based on dietary intake and clinical advice.",
-  },
-  {
-    id: 8,
-    name: "Ibuprofen",
-    generic: "Ibuprofen",
-    category: "Pain Relief",
-    dosage: "200 mg",
-    form: "Tablet",
-    description: "NSAID used for temporary relief of pain and inflammation.",
-    commonUses: ["Headache", "Muscle pain", "Inflammation"],
-    prescription: "OTC",
-    interactions: ["Anticoagulants", "Other NSAIDs"],
-    precautions: "Use caution with stomach, kidney, or cardiovascular conditions.",
-  },
-];
-
 const popularSearches = [
-  "Paracetamol",
   "Metformin",
-  "Vitamin D3",
-  "Cetirizine",
+  "Atorvastatin",
+  "Amoxicillin",
+  "Lisinopril",
   "Ibuprofen",
 ];
 
@@ -334,6 +229,13 @@ function Sidebar({ darkMode }) {
 }
 
 function Header({ darkMode, setDarkMode }) {
+  const { user } = useAuth();
+  const displayName =
+    user?.full_name ||
+    (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : null) ||
+    user?.email ||
+    "Patient";
+
   return (
     <header
       className={`flex h-[78px] shrink-0 items-center justify-between border-b px-8 ${
@@ -409,15 +311,9 @@ function Header({ darkMode, setDarkMode }) {
 
         <Link to={ROUTES.settings} className="flex items-center gap-3">
           <div
-            className={`h-10 w-10 overflow-hidden rounded-full ${
-              darkMode ? "bg-slate-700" : "bg-slate-200"
-            }`}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-white font-semibold text-xs"
           >
-            <img
-              src="https://i.pravatar.cc/100?img=12"
-              alt="Patient profile"
-              className="h-full w-full object-cover"
-            />
+            {displayName.slice(0, 2).toUpperCase()}
           </div>
 
           <span
@@ -425,7 +321,7 @@ function Header({ darkMode, setDarkMode }) {
               darkMode ? "text-slate-200" : "text-slate-800"
             }`}
           >
-            John Doe
+            {displayName}
           </span>
 
           <ChevronDown
@@ -725,6 +621,35 @@ function DetailsModal({ medicine, darkMode, onClose }) {
             </div>
           </div>
 
+          {medicine.adverseReactions && medicine.adverseReactions.length > 0 && (
+            <div
+              className={`mt-4 rounded-xl border p-3 ${
+                darkMode
+                  ? "border-slate-800 bg-[#101918]"
+                  : "border-slate-100 bg-slate-50"
+              }`}
+            >
+              <p className="text-[8px] uppercase tracking-[0.08em] text-slate-500">
+                OpenFDA Reported Adverse Reactions
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {medicine.adverseReactions.map((ar, idx) => (
+                  <span
+                    key={idx}
+                    className={`rounded-md px-2 py-0.5 text-[8px] ${
+                      darkMode
+                        ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                        : "bg-red-50 text-red-700 border border-red-200"
+                    }`}
+                  >
+                    {ar.reaction || ar}{" "}
+                    {ar.reported_cases ? `(${Number(ar.reported_cases).toLocaleString()} cases)` : ""}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div
             className={`mt-4 flex items-start gap-2 rounded-xl border p-3 ${
               darkMode
@@ -742,8 +667,7 @@ function DetailsModal({ medicine, darkMode, onClose }) {
                 darkMode ? "text-slate-500" : "text-slate-600"
               }`}
             >
-              This information is for educational use. Do not start, stop, or
-              change a medicine based only on this page. Confirm medicine use
+              This information is for educational and clinical decision support use. Confirm medicine use
               with a qualified healthcare professional.
             </p>
           </div>
@@ -766,13 +690,101 @@ export default function MedicineSearch() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [selectedMedicine, setSelectedMedicine] = useState(null);
+  const [patientMeds, setPatientMeds] = useState([]);
+  const [openFdaResults, setOpenFdaResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchingFda, setSearchingFda] = useState(false);
 
-  const categories = ["All", ...new Set(medicineDatabase.map((item) => item.category))];
+  useEffect(() => {
+    let isMounted = true;
+    async function loadMeds() {
+      try {
+        setLoading(true);
+        const data = await patientService.getMedications();
+        if (!isMounted) return;
+        const list = Array.isArray(data) ? data : data?.results || [];
+        const formatted = list.map((med) => ({
+          id: med.id,
+          name: med.name,
+          generic: med.prescribed_by_name ? `Prescribed by ${med.prescribed_by_name}` : "Patient Prescription",
+          prescription: med.is_active ? "Active" : "Completed",
+          category: "My Prescriptions",
+          description: med.notes || `Dosage: ${med.dosage || "As advised"}, Frequency: ${med.frequency || "Daily"}`,
+          commonUses: [med.frequency, med.is_active ? "Active Regimen" : "Past"].filter(Boolean),
+          dosage: med.dosage || "Prescription",
+          form: med.frequency || "Oral",
+          interactions: ["Check with prescriber before combining with new medications"],
+          precautions: med.notes || "Take as directed by doctor.",
+          adverseReactions: [],
+        }));
+        setPatientMeds(formatted);
+      } catch (err) {
+        console.error("Failed to load patient medications:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    loadMeds();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const searchOpenFda = async (searchTerm) => {
+    const term = (searchTerm !== undefined ? searchTerm : query).trim();
+    if (!term) {
+      setOpenFdaResults([]);
+      return;
+    }
+    try {
+      setSearchingFda(true);
+      const res = await patientService.getDrugReactions(term, 8);
+      if (res && (res.adverse_reactions?.length > 0 || res.boxed_warnings?.length > 0 || res.drug)) {
+        const drugName = res.drug || term;
+        const fdaItem = {
+          id: `fda-${drugName}`,
+          name: drugName.charAt(0).toUpperCase() + drugName.slice(1),
+          generic: "OpenFDA Reference Registry",
+          prescription: res.has_boxed_warning ? "Boxed Warning" : "FDA Monitored",
+          category: "OpenFDA Clinical Data",
+          description:
+            res.boxed_warnings?.[0] ||
+            `FDA adverse event report data for ${drugName}. Total reported cases: ${res.total_reactions || res.adverse_reactions?.length || 0}.`,
+          commonUses: ["Clinical Safety", "FDA Monitored"],
+          dosage: "Per prescription label",
+          form: "Prescription / OTC",
+          interactions: res.boxed_warnings?.length
+            ? res.boxed_warnings.slice(0, 3)
+            : ["Verify potential interactions with existing prescriptions"],
+          precautions: res.precautions?.length
+            ? res.precautions.join(". ")
+            : "Review FDA prescribing information before use.",
+          adverseReactions: res.adverse_reactions || [],
+        };
+        setOpenFdaResults([fdaItem]);
+      } else {
+        setOpenFdaResults([]);
+      }
+    } catch (err) {
+      console.warn("OpenFDA search returned no results or error:", err);
+      setOpenFdaResults([]);
+    } finally {
+      setSearchingFda(false);
+    }
+  };
+
+  const allMedicines = useMemo(() => {
+    return [...patientMeds, ...openFdaResults];
+  }, [patientMeds, openFdaResults]);
+
+  const categories = useMemo(() => {
+    return ["All", ...new Set(allMedicines.map((item) => item.category))];
+  }, [allMedicines]);
 
   const filteredMedicines = useMemo(() => {
     const normalized = query.trim().toLowerCase();
 
-    return medicineDatabase.filter((medicine) => {
+    return allMedicines.filter((medicine) => {
       const categoryMatch =
         category === "All" || medicine.category === category;
 
@@ -787,7 +799,7 @@ export default function MedicineSearch() {
 
       return categoryMatch && searchMatch;
     });
-  }, [query, category]);
+  }, [allMedicines, query, category]);
 
   return (
     <div
@@ -827,7 +839,7 @@ export default function MedicineSearch() {
                   darkMode ? "text-slate-500" : "text-slate-500"
                 }`}
               >
-                Search common medicines, uses, dosage forms and basic precautions
+                Search your active prescriptions and query OpenFDA drug safety profiles
               </p>
             </div>
 
@@ -850,7 +862,13 @@ export default function MedicineSearch() {
                 </h3>
               </div>
 
-              <div className="mt-3 flex gap-3">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  searchOpenFda();
+                }}
+                className="mt-3 flex gap-3"
+              >
                 <div
                   className={`flex h-11 min-w-0 flex-1 items-center gap-3 rounded-xl border px-4 ${
                     darkMode
@@ -874,13 +892,24 @@ export default function MedicineSearch() {
                   {query && (
                     <button
                       type="button"
-                      onClick={() => setQuery("")}
+                      onClick={() => {
+                        setQuery("");
+                        setOpenFdaResults([]);
+                      }}
                       className="text-slate-500 hover:text-slate-300"
                     >
                       <X size={14} />
                     </button>
                   )}
                 </div>
+
+                <button
+                  type="submit"
+                  disabled={searchingFda}
+                  className="h-11 rounded-xl bg-emerald-500 px-4 text-[11px] font-medium text-white transition hover:bg-emerald-600 disabled:opacity-50"
+                >
+                  {searchingFda ? "Searching..." : "Search"}
+                </button>
 
                 <select
                   value={category}
@@ -895,11 +924,11 @@ export default function MedicineSearch() {
                     <option key={item}>{item}</option>
                   ))}
                 </select>
-              </div>
+              </form>
 
               <div className="mt-3">
                 <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-                  Popular searches
+                  Popular searches (OpenFDA Registry)
                 </p>
 
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -910,8 +939,9 @@ export default function MedicineSearch() {
                       onClick={() => {
                         setQuery(item);
                         setCategory("All");
+                        searchOpenFda(item);
                       }}
-                      className={`rounded-full px-2.5 py-1.5 text-[8px] ${
+                      className={`rounded-full px-2.5 py-1.5 text-[8px] transition ${
                         darkMode
                           ? "bg-slate-800 text-slate-400 hover:text-slate-200"
                           : "bg-slate-100 text-slate-500 hover:text-slate-700"
@@ -950,11 +980,24 @@ export default function MedicineSearch() {
                 }`}
               >
                 <ShieldCheck size={11} className="text-emerald-500" />
-                Educational reference
+                Live OpenFDA & Clinical Registry
               </div>
             </div>
 
-            {filteredMedicines.length === 0 ? (
+            {loading ? (
+              <section
+                className={`mt-3 flex min-h-[220px] flex-col items-center justify-center rounded-[14px] border text-center ${
+                  darkMode
+                    ? "border-slate-800 bg-[#15211f]"
+                    : "border-slate-200 bg-white"
+                }`}
+              >
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+                <p className={`mt-2 text-[11px] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  Loading medications...
+                </p>
+              </section>
+            ) : filteredMedicines.length === 0 ? (
               <section
                 className={`mt-3 flex min-h-[300px] flex-col items-center justify-center rounded-[14px] border text-center ${
                   darkMode
@@ -983,8 +1026,7 @@ export default function MedicineSearch() {
                     darkMode ? "text-slate-600" : "text-slate-400"
                   }`}
                 >
-                  Try a different medicine name, generic name, category or
-                  common use.
+                  Type a medicine name and click Search to query the OpenFDA registry, or select one of the popular searches above.
                 </p>
               </section>
             ) : (
@@ -1017,9 +1059,8 @@ export default function MedicineSearch() {
                   darkMode ? "text-slate-500" : "text-slate-600"
                 }`}
               >
-                Medicine information on this page is for educational and
-                demonstration purposes. Always confirm dosing, suitability,
-                contraindications and interactions with a doctor or pharmacist.
+                Medicine information on this page is retrieved from OpenFDA and clinical records.
+                Always confirm dosing, suitability, contraindications and interactions with a licensed healthcare professional.
               </p>
             </div>
           </div>

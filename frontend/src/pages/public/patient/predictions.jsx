@@ -27,62 +27,8 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-
-const baselineRisks = [
-  {
-    id: "cardio",
-    title: "Cardiovascular Risk",
-    score: 18,
-    level: "Low",
-    description: "Current indicators suggest a relatively low short-term cardiovascular risk.",
-    factors: ["Blood pressure within target", "Stable resting heart rate", "Healthy BMI"],
-  },
-  {
-    id: "diabetes",
-    title: "Diabetes Risk",
-    score: 22,
-    level: "Low",
-    description: "Recent glucose values are broadly within the expected range.",
-    factors: ["Glucose 102 mg/dL", "No recent abnormal trend", "BMI 23.4 kg/m²"],
-  },
-  {
-    id: "respiratory",
-    title: "Respiratory Risk",
-    score: 31,
-    level: "Moderate",
-    description: "Recent symptom history suggests monitoring respiratory symptoms is useful.",
-    factors: ["Occasional cough history", "No persistent fever reported", "Oxygen level remains stable"],
-  },
-];
-
-const trendData = [
-  { month: "Jan", score: 32 },
-  { month: "Feb", score: 30 },
-  { month: "Mar", score: 27 },
-  { month: "Apr", score: 25 },
-  { month: "May", score: 22 },
-];
-
-const predictionHistory = [
-  {
-    date: "18 May 2026",
-    category: "Diabetes Risk",
-    prediction: "Low risk",
-    confidence: 86,
-  },
-  {
-    date: "10 May 2026",
-    category: "Cardiovascular Risk",
-    prediction: "Low risk",
-    confidence: 82,
-  },
-  {
-    date: "28 Apr 2026",
-    category: "Respiratory Risk",
-    prediction: "Moderate risk",
-    confidence: 74,
-  },
-];
+import { useAuth } from "../../../_core/hooks/useAuth";
+import aiService from "../../../services/aiService";
 
 function useDarkMode() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -106,6 +52,13 @@ function useDarkMode() {
 }
 
 function Header({ darkMode, setDarkMode }) {
+  const { user } = useAuth();
+  const displayName =
+    user?.full_name ||
+    (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : null) ||
+    user?.email ||
+    "Patient";
+
   return (
     <header
       className={`flex h-[78px] shrink-0 items-center justify-between border-b px-8 ${
@@ -181,15 +134,9 @@ function Header({ darkMode, setDarkMode }) {
 
         <Link to="/patient/settings" className="flex items-center gap-3">
           <div
-            className={`h-10 w-10 overflow-hidden rounded-full ${
-              darkMode ? "bg-slate-700" : "bg-slate-200"
-            }`}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-white font-semibold text-xs"
           >
-            <img
-              src="https://i.pravatar.cc/100?img=12"
-              alt="Patient profile"
-              className="h-full w-full object-cover"
-            />
+            {displayName.slice(0, 2).toUpperCase()}
           </div>
 
           <span
@@ -197,7 +144,7 @@ function Header({ darkMode, setDarkMode }) {
               darkMode ? "text-slate-200" : "text-slate-800"
             }`}
           >
-            John Doe
+            {displayName}
           </span>
 
           <ChevronDown
@@ -358,7 +305,21 @@ function PredictionCard({ item, darkMode, onView }) {
   );
 }
 
-function TrendChart({ darkMode }) {
+function TrendChart({ darkMode, data = [] }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex h-[190px] w-full flex-col items-center justify-center p-4 text-center">
+        <TrendingUp size={24} className="text-slate-400 opacity-40 mb-1" />
+        <p className={`text-[11px] font-medium ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
+          No risk trend history recorded
+        </p>
+        <p className={`text-[9px] mt-0.5 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+          Generated disease predictions will track your historical risk progression here.
+        </p>
+      </div>
+    );
+  }
+
   const width = 520;
   const height = 170;
   const paddingLeft = 34;
@@ -366,28 +327,28 @@ function TrendChart({ darkMode }) {
   const paddingTop = 12;
   const paddingBottom = 28;
 
-  const min = 15;
-  const max = 40;
+  const min = 0;
+  const max = 100;
 
-  const points = trendData
-    .map((item, index) => {
-      const x =
-        paddingLeft +
-        (index / (trendData.length - 1)) *
-          (width - paddingLeft - paddingRight);
+  const points = data.map((item, index) => {
+    const x =
+      paddingLeft +
+      (data.length > 1
+        ? (index / (data.length - 1)) * (width - paddingLeft - paddingRight)
+        : (width - paddingLeft - paddingRight) / 2);
 
-      const y =
-        height -
-        paddingBottom -
-        ((item.score - min) / (max - min)) *
-          (height - paddingTop - paddingBottom);
+    const y =
+      height -
+      paddingBottom -
+      ((item.score - min) / (max - min)) *
+        (height - paddingTop - paddingBottom);
 
-      return {
-        ...item,
-        x,
-        y,
-      };
-    });
+    return {
+      ...item,
+      x,
+      y,
+    };
+  });
 
   const polyline = points.map((point) => `${point.x},${point.y}`).join(" ");
 
@@ -399,7 +360,7 @@ function TrendChart({ darkMode }) {
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="none"
       >
-        {[20, 25, 30, 35, 40].map((tick) => {
+        {[20, 40, 60, 80, 100].map((tick) => {
           const y =
             height -
             paddingBottom -
@@ -428,12 +389,12 @@ function TrendChart({ darkMode }) {
           );
         })}
 
-        {trendData.map((item, index) => {
+        {data.map((item, index) => {
           const point = points[index];
 
           return (
             <text
-              key={item.month}
+              key={`${item.month}-${index}`}
               x={point.x}
               y={height - 8}
               textAnchor="middle"
@@ -454,9 +415,9 @@ function TrendChart({ darkMode }) {
           strokeLinejoin="round"
         />
 
-        {points.map((point) => (
+        {points.map((point, index) => (
           <circle
-            key={point.month}
+            key={`pt-${index}`}
             cx={point.x}
             cy={point.y}
             r="4"
@@ -548,7 +509,7 @@ function DetailModal({ prediction, darkMode, onClose }) {
                 darkMode ? "text-slate-300" : "text-slate-700"
               }`}
             >
-              Contributing factors
+              Contributing factors (SHAP Analysis)
             </p>
 
             <div className="mt-2 space-y-2">
@@ -584,9 +545,7 @@ function DetailModal({ prediction, darkMode, onClose }) {
                 darkMode ? "text-slate-400" : "text-slate-600"
               }`}
             >
-              This is a model-generated risk estimate for demonstration
-              purposes, not a medical diagnosis. Predictions should be
-              reviewed with a qualified clinician.
+              This is a machine learning risk assessment using XGBoost and TreeSHAP explainability. Predictions are decision support aids and should be reviewed by a licensed clinician.
             </p>
           </div>
 
@@ -606,33 +565,83 @@ function DetailModal({ prediction, darkMode, onClose }) {
 export default function Predictions() {
   const [darkMode, setDarkMode] = useDarkMode();
   const [selectedPrediction, setSelectedPrediction] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState("Today, 10:30 AM");
-  const [predictionSet, setPredictionSet] = useState(baselineRisks);
+  const [lastUpdated, setLastUpdated] = useState("Checking...");
+  const [rawPredictions, setRawPredictions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const overallRisk = useMemo(
-    () =>
-      Math.round(
-        predictionSet.reduce((sum, item) => sum + item.score, 0) /
-          predictionSet.length
-      ),
-    [predictionSet]
-  );
-
-  const refreshPredictions = () => {
-    const next = predictionSet.map((item, index) => ({
-      ...item,
-      score: Math.max(
-        8,
-        Math.min(
-          45,
-          item.score + (index === 0 ? -1 : index === 1 ? 1 : 0)
-        )
-      ),
-    }));
-
-    setPredictionSet(next);
-    setLastUpdated("Just now");
+  const loadPredictions = async () => {
+    try {
+      setLoading(true);
+      const data = await aiService.getPredictionHistory();
+      const list = Array.isArray(data) ? data : [];
+      setRawPredictions(list);
+      setLastUpdated(list.length > 0 ? "Just now" : "No records yet");
+    } catch (err) {
+      console.warn("Failed to load prediction history:", err);
+      setLastUpdated("Unavailable");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    loadPredictions();
+  }, []);
+
+  const predictionSet = useMemo(() => {
+    return rawPredictions.map((p) => {
+      const rawConf = p.confidence != null ? Number(p.confidence) : 0.5;
+      const score = Math.round(rawConf <= 1 ? rawConf * 100 : rawConf);
+      const level = score >= 75 ? "High" : score >= 45 ? "Moderate" : "Low";
+
+      let factors = [];
+      if (p.explanation?.shap_analysis?.features) {
+        factors = Object.keys(p.explanation.shap_analysis.features);
+      } else if (Array.isArray(p.explanation?.top_features)) {
+        factors = p.explanation.top_features;
+      } else if (Array.isArray(p.input_data?.symptoms)) {
+        factors = p.input_data.symptoms;
+      } else {
+        factors = ["Clinical symptom factors evaluated"];
+      }
+
+      return {
+        id: p.id,
+        title: p.predicted_condition || p.model_name || "Clinical Risk Assessment",
+        score,
+        level,
+        description: `Model ${p.model_name || "XGBoost"} prediction with ${score}% confidence score.`,
+        factors: factors.slice(0, 4),
+        date: p.created_at
+          ? new Date(p.created_at).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })
+          : "Recent",
+      };
+    });
+  }, [rawPredictions]);
+
+  const overallRisk = useMemo(() => {
+    if (predictionSet.length === 0) return 0;
+    return Math.round(
+      predictionSet.reduce((sum, item) => sum + item.score, 0) /
+        predictionSet.length
+    );
+  }, [predictionSet]);
+
+  const trendPoints = useMemo(() => {
+    return rawPredictions
+      .slice()
+      .reverse()
+      .map((p) => {
+        const rawConf = p.confidence != null ? Number(p.confidence) : 0.5;
+        const score = Math.round(rawConf <= 1 ? rawConf * 100 : rawConf);
+        const d = p.created_at ? new Date(p.created_at) : new Date();
+        return {
+          month: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          score,
+        };
+      })
+      .slice(-6);
+  }, [rawPredictions]);
 
   return (
     <div
@@ -679,10 +688,11 @@ export default function Predictions() {
 
               <button
                 type="button"
-                onClick={refreshPredictions}
-                className="rounded-lg bg-emerald-500 px-4 py-2 text-[10px] font-semibold text-white hover:bg-emerald-600"
+                onClick={loadPredictions}
+                disabled={loading}
+                className="rounded-lg bg-emerald-500 px-4 py-2 text-[10px] font-semibold text-white transition hover:bg-emerald-600 disabled:opacity-50"
               >
-                Refresh Predictions
+                {loading ? "Refreshing..." : "Refresh Predictions"}
               </button>
             </div>
 
@@ -708,9 +718,11 @@ export default function Predictions() {
                       darkMode ? "text-white" : "text-emerald-950"
                     }`}
                   >
-                    {overallRisk}%
+                    {predictionSet.length > 0 ? `${overallRisk}%` : "--"}
                   </span>
-                  <span className="text-[9px] text-emerald-500">low</span>
+                  <span className="text-[9px] text-emerald-500">
+                    {overallRisk < 45 ? "low" : overallRisk < 75 ? "moderate" : "high"}
+                  </span>
                 </div>
               </div>
 
@@ -809,7 +821,7 @@ export default function Predictions() {
                       darkMode ? "text-slate-500" : "text-slate-500"
                     }`}
                   >
-                    Current risk estimates across selected health categories
+                    Machine learning predictions generated with XGBoost and TreeSHAP
                   </p>
                 </div>
 
@@ -819,20 +831,38 @@ export default function Predictions() {
                   }`}
                 >
                   <Sparkles size={11} className="text-emerald-500" />
-                  AI assisted
+                  AI Model
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                {predictionSet.map((item) => (
-                  <PredictionCard
-                    key={item.id}
-                    item={item}
-                    darkMode={darkMode}
-                    onView={setSelectedPrediction}
-                  />
-                ))}
-              </div>
+              {predictionSet.length === 0 ? (
+                <div className="py-12 text-center">
+                  <Brain size={32} className="mx-auto text-slate-400 opacity-40 mb-2" />
+                  <p className={`text-xs font-medium ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
+                    No disease risk predictions generated yet
+                  </p>
+                  <p className={`text-[10px] mt-1 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                    Submit symptoms in the Symptom Analysis tool to produce ML-powered disease predictions.
+                  </p>
+                  <Link
+                    to="/patient/symptom-analysis"
+                    className="mt-3.5 inline-block rounded-lg bg-emerald-500 px-4 py-2 text-[10px] font-semibold text-white transition hover:bg-emerald-600"
+                  >
+                    Run Symptom Analysis
+                  </Link>
+                </div>
+              ) : (
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  {predictionSet.map((item) => (
+                    <PredictionCard
+                      key={item.id}
+                      item={item}
+                      darkMode={darkMode}
+                      onView={setSelectedPrediction}
+                    />
+                  ))}
+                </div>
+              )}
             </section>
 
             <div className="mt-3 grid grid-cols-[1.15fr_0.85fr] gap-3">
@@ -869,11 +899,11 @@ export default function Predictions() {
                         : "bg-emerald-50 text-emerald-700"
                     }`}
                   >
-                    Improving
+                    {predictionSet.length > 0 ? "Synchronized" : "No trend"}
                   </span>
                 </div>
 
-                <TrendChart darkMode={darkMode} />
+                <TrendChart darkMode={darkMode} data={trendPoints} />
               </section>
 
               <section
@@ -923,14 +953,14 @@ export default function Predictions() {
                     }`}
                   >
                     <p className="text-[9px] font-semibold text-emerald-500">
-                      Low risk
+                      Low risk (Score &lt; 45%)
                     </p>
                     <p
                       className={`mt-1 text-[8px] leading-4 ${
                         darkMode ? "text-slate-400" : "text-slate-500"
                       }`}
                     >
-                      Continue routine care and healthy habits.
+                      Routine health patterns detected. Maintain general wellness habits.
                     </p>
                   </div>
 
@@ -942,15 +972,14 @@ export default function Predictions() {
                     }`}
                   >
                     <p className="text-[9px] font-semibold text-amber-500">
-                      Moderate risk
+                      Moderate risk (Score 45% - 75%)
                     </p>
                     <p
                       className={`mt-1 text-[8px] leading-4 ${
                         darkMode ? "text-slate-400" : "text-slate-500"
                       }`}
                     >
-                      Monitor the relevant indicators and discuss persistent
-                      concerns with your clinician.
+                      Monitor indicators closely and discuss persistent symptoms with your physician.
                     </p>
                   </div>
 
@@ -970,8 +999,7 @@ export default function Predictions() {
                         darkMode ? "text-slate-500" : "text-slate-500"
                       }`}
                     >
-                      Predictions are estimates for demonstration and should
-                      not be treated as a medical diagnosis.
+                      Predictions are algorithmic estimates for clinical guidance and should be verified with a healthcare professional.
                     </p>
                   </div>
                 </div>
@@ -1026,58 +1054,68 @@ export default function Predictions() {
                   <span>Confidence</span>
                 </div>
 
-                {predictionHistory.map((item, index) => (
-                  <div
-                    key={`${item.category}-${item.date}`}
-                    className={`grid grid-cols-[0.8fr_1.2fr_1fr_0.7fr] items-center px-4 py-3 ${
-                      index !== predictionHistory.length - 1
-                        ? `border-t ${
-                            darkMode
-                              ? "border-slate-800"
-                              : "border-slate-100"
-                          }`
-                        : ""
-                    }`}
-                  >
-                    <span
-                      className={`text-[9px] ${
-                        darkMode ? "text-slate-500" : "text-slate-500"
-                      }`}
-                    >
-                      {item.date}
-                    </span>
-
-                    <span
-                      className={`text-[9px] ${
-                        darkMode ? "text-slate-300" : "text-slate-600"
-                      }`}
-                    >
-                      {item.category}
-                    </span>
-
-                    <span
-                      className={`inline-flex w-fit rounded-full px-2 py-1 text-[8px] font-medium ${
-                        item.prediction === "Low risk"
-                          ? darkMode
-                            ? "bg-emerald-500/10 text-emerald-400"
-                            : "bg-emerald-50 text-emerald-700"
-                          : darkMode
-                            ? "bg-amber-500/10 text-amber-400"
-                            : "bg-amber-50 text-amber-700"
-                      }`}
-                    >
-                      {item.prediction}
-                    </span>
-
-                    <span
-                      className={`text-[9px] ${
-                        darkMode ? "text-slate-400" : "text-slate-500"
-                      }`}
-                    >
-                      {item.confidence}%
-                    </span>
+                {predictionSet.length === 0 ? (
+                  <div className={`border-t px-4 py-8 text-center text-[10px] ${darkMode ? "border-slate-800 text-slate-500" : "border-slate-100 text-slate-400"}`}>
+                    No historical prediction records found.
                   </div>
-                ))}
+                ) : (
+                  predictionSet.map((item, index) => (
+                    <div
+                      key={`${item.id}-${index}`}
+                      className={`grid grid-cols-[0.8fr_1.2fr_1fr_0.7fr] items-center px-4 py-3 ${
+                        index !== predictionSet.length - 1
+                          ? `border-t ${
+                              darkMode
+                                ? "border-slate-800"
+                                : "border-slate-100"
+                            }`
+                          : ""
+                      }`}
+                    >
+                      <span
+                        className={`text-[9px] ${
+                          darkMode ? "text-slate-500" : "text-slate-500"
+                        }`}
+                      >
+                        {item.date}
+                      </span>
+
+                      <span
+                        className={`text-[9px] ${
+                          darkMode ? "text-slate-300" : "text-slate-600"
+                        }`}
+                      >
+                        {item.title}
+                      </span>
+
+                      <span
+                        className={`inline-flex w-fit rounded-full px-2 py-1 text-[8px] font-medium ${
+                          item.level === "Low"
+                            ? darkMode
+                              ? "bg-emerald-500/10 text-emerald-400"
+                              : "bg-emerald-50 text-emerald-700"
+                            : item.level === "Moderate"
+                              ? darkMode
+                                ? "bg-amber-500/10 text-amber-400"
+                                : "bg-amber-50 text-amber-700"
+                              : darkMode
+                                ? "bg-red-500/10 text-red-400"
+                                : "bg-red-50 text-red-600"
+                        }`}
+                      >
+                        {item.level} risk
+                      </span>
+
+                      <span
+                        className={`text-[9px] ${
+                          darkMode ? "text-slate-400" : "text-slate-500"
+                        }`}
+                      >
+                        {item.score}%
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </section>
           </div>

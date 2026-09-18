@@ -30,8 +30,6 @@ export function AuthProvider({ children }) {
       const enrichedUser = { ...data, full_name };
 
       setUser(enrichedUser);
-      localStorage.setItem("medicare-demo-user", JSON.stringify(enrichedUser));
-      localStorage.setItem("manus-runtime-user-info", JSON.stringify(enrichedUser));
       return enrichedUser;
     } catch (err) {
       console.warn("Auth initialization: session invalid or expired", err);
@@ -52,7 +50,7 @@ export function AuthProvider({ children }) {
     };
 
     const handleStorageChange = (e) => {
-      if (e.key === "medicare_access_token" || e.key === "medicare-demo-user") {
+      if (e.key === "medicare_access_token") {
         fetchCurrentUser();
       }
     };
@@ -94,8 +92,6 @@ export function AuthProvider({ children }) {
       const finalUser = { ...enrichedUser, full_name };
 
       setUser(finalUser);
-      localStorage.setItem("medicare-demo-user", JSON.stringify(finalUser));
-      localStorage.setItem("manus-runtime-user-info", JSON.stringify(finalUser));
       window.dispatchEvent(new Event("medicare-auth-change"));
 
       return { success: true, user: finalUser };

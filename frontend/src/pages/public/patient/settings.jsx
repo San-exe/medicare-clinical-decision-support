@@ -27,6 +27,8 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import { useAuth } from "../../../_core/hooks/useAuth";
+import patientService from "../../../services/patientService";
 
 const ROUTES = {
   dashboard: "/patient/dashboard",
@@ -212,6 +214,13 @@ function Sidebar({ darkMode }) {
 }
 
 function Header({ darkMode, setDarkMode }) {
+  const { user } = useAuth();
+  const displayName =
+    user?.full_name ||
+    (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : null) ||
+    user?.email ||
+    "Patient";
+
   return (
     <header
       className={`flex h-[78px] shrink-0 items-center justify-between border-b px-8 ${
@@ -287,15 +296,9 @@ function Header({ darkMode, setDarkMode }) {
 
         <Link to={ROUTES.settings} className="flex items-center gap-3">
           <div
-            className={`h-10 w-10 overflow-hidden rounded-full ${
-              darkMode ? "bg-slate-700" : "bg-slate-200"
-            }`}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-white font-semibold text-xs"
           >
-            <img
-              src="https://i.pravatar.cc/100?img=12"
-              alt="Patient profile"
-              className="h-full w-full object-cover"
-            />
+            {displayName.slice(0, 2).toUpperCase()}
           </div>
 
           <span
@@ -303,7 +306,7 @@ function Header({ darkMode, setDarkMode }) {
               darkMode ? "text-slate-200" : "text-slate-800"
             }`}
           >
-            John Doe
+            {displayName}
           </span>
 
           <ChevronDown
@@ -398,13 +401,18 @@ function SectionCard({ darkMode, title, description, children }) {
 
 export default function Settings() {
   const [darkMode, setDarkMode] = useDarkMode();
+  const { user } = useAuth();
 
   const [profile, setProfile] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phone: "+91 98765 43210",
-    dateOfBirth: "1992-04-18",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
+    bloodGroup: "",
+    gender: "",
+    address: "",
+    emergencyContact: "",
   });
 
   const [notifications, setNotifications] = useState({
@@ -422,50 +430,91 @@ export default function Settings() {
 
   const [language, setLanguage] = useState("English");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const saveChanges = () => {
-    localStorage.setItem(
-      "medicare-profile-settings",
-      JSON.stringify(profile)
-    );
-
-    localStorage.setItem(
-      "medicare-notification-settings",
-      JSON.stringify(notifications)
-    );
-
-    localStorage.setItem(
-      "medicare-privacy-settings",
-      JSON.stringify(privacy)
-    );
-
-    localStorage.setItem("medicare-language", language);
-
-    setSaved(true);
-
-    window.setTimeout(() => setSaved(false), 2200);
-  };
-
   useEffect(() => {
+    async function loadProfile() {
+      try {
+        const res = await patientService.getProfile();
+        if (res) {
+          setProfile({
+            firstName: res.first_name || user?.first_name || "",
+            lastName: res.last_name || user?.last_name || "",
+            email: res.email || user?.email || "",
+            phone: res.phone || "",
+            dateOfBirth: res.date_of_birth || "",
+            bloodGroup: res.blood_group || "",
+            gender: res.gender || "",
+            address: res.address || "",
+            emergencyContact: res.emergency_contact || "",
+          });
+        }
+      } catch (err) {
+        console.warn("Could not load backend patient profile:", err);
+        if (user) {
+          setProfile((prev) => ({
+            ...prev,
+            firstName: user.first_name || "",
+            lastName: user.last_name || "",
+            email: user.email || "",
+          }));
+        }
+      }
+    }
+    loadProfile();
+
     try {
-      const storedProfile = localStorage.getItem("medicare-profile-settings");
-      const storedNotifications = localStorage.getItem(
-        "medicare-notification-settings"
-      );
+      const storedNotifications = localStorage.getItem("medicare-notification-settings");
       const storedPrivacy = localStorage.getItem("medicare-privacy-settings");
       const storedLanguage = localStorage.getItem("medicare-language");
 
-      if (storedProfile) setProfile(JSON.parse(storedProfile));
-      if (storedNotifications)
-        setNotifications(JSON.parse(storedNotifications));
+      if (storedNotifications) setNotifications(JSON.parse(storedNotifications));
       if (storedPrivacy) setPrivacy(JSON.parse(storedPrivacy));
       if (storedLanguage) setLanguage(storedLanguage);
     } catch {
-      // Ignore malformed demo localStorage values.
+      // Ignore malformed localStorage values.
     }
-  }, []);
+  }, [user]);
+
+  const saveChanges = async () => {
+    try {
+      setSaving(true);
+      setSaveError("");
+      await patientService.updateProfile({
+        phone: profile.phone,
+        date_of_birth: profile.dateOfBirth || null,
+        blood_group: profile.bloodGroup || "",
+        gender: profile.gender || "",
+        address: profile.address || "",
+        emergency_contact: profile.emergencyContact || "",
+      });
+
+      localStorage.setItem("medicare-notification-settings", JSON.stringify(notifications));
+      localStorage.setItem("medicare-privacy-settings", JSON.stringify(privacy));
+      localStorage.setItem("medicare-language", language);
+
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 2200);
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+      setSaveError(
+        err.response?.data?.message ||
+        err.response?.data?.detail ||
+        "Failed to save profile changes. Please try again."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const displayName =
+    user?.full_name ||
+    (profile.firstName ? `${profile.firstName} ${profile.lastName}`.trim() : null) ||
+    profile.email ||
+    "Patient";
 
   return (
     <div
@@ -510,10 +559,11 @@ export default function Settings() {
               <button
                 type="button"
                 onClick={saveChanges}
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-[10px] font-semibold text-white hover:bg-emerald-600"
+                disabled={saving}
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-[10px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-50"
               >
                 <Save size={13} />
-                Save Changes
+                {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>
 
@@ -526,7 +576,20 @@ export default function Settings() {
                 }`}
               >
                 <ShieldCheck size={12} />
-                Changes saved successfully.
+                Profile changes saved successfully to your health record.
+              </div>
+            )}
+
+            {saveError && (
+              <div
+                className={`mt-3 flex items-center gap-2 rounded-xl border px-3 py-2 text-[9px] ${
+                  darkMode
+                    ? "border-red-500/20 bg-red-500/5 text-red-400"
+                    : "border-red-100 bg-red-50 text-red-700"
+                }`}
+              >
+                <AlertTriangle size={12} />
+                {saveError}
               </div>
             )}
 
@@ -538,15 +601,9 @@ export default function Settings() {
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`flex h-12 w-12 overflow-hidden rounded-full ${
-                      darkMode ? "bg-slate-700" : "bg-slate-200"
-                    }`}
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white font-semibold text-sm shadow-sm"
                   >
-                    <img
-                      src="https://i.pravatar.cc/100?img=12"
-                      alt="John Doe"
-                      className="h-full w-full object-cover"
-                    />
+                    {displayName.slice(0, 2).toUpperCase()}
                   </div>
 
                   <div>
@@ -555,7 +612,7 @@ export default function Settings() {
                         darkMode ? "text-slate-200" : "text-slate-700"
                       }`}
                     >
-                      {profile.firstName} {profile.lastName}
+                      {displayName}
                     </p>
 
                     <p
@@ -563,7 +620,7 @@ export default function Settings() {
                         darkMode ? "text-slate-600" : "text-slate-400"
                       }`}
                     >
-                      Patient account
+                      Patient account &bull; {profile.email || "Active"}
                     </p>
                   </div>
                 </div>
@@ -631,8 +688,58 @@ export default function Settings() {
                     darkMode={darkMode}
                   />
 
+                  <Field
+                    label="Blood Group"
+                    value={profile.bloodGroup}
+                    onChange={(value) =>
+                      setProfile((current) => ({
+                        ...current,
+                        bloodGroup: value,
+                      }))
+                    }
+                    darkMode={darkMode}
+                  />
+
+                  <Field
+                    label="Gender"
+                    value={profile.gender}
+                    onChange={(value) =>
+                      setProfile((current) => ({
+                        ...current,
+                        gender: value,
+                      }))
+                    }
+                    darkMode={darkMode}
+                  />
+
+                  <Field
+                    label="Emergency Contact"
+                    value={profile.emergencyContact}
+                    onChange={(value) =>
+                      setProfile((current) => ({
+                        ...current,
+                        emergencyContact: value,
+                      }))
+                    }
+                    darkMode={darkMode}
+                  />
+
+                  <div className="col-span-2">
+                    <Field
+                      label="Address"
+                      value={profile.address}
+                      onChange={(value) =>
+                        setProfile((current) => ({
+                          ...current,
+                          address: value,
+                        }))
+                      }
+                      darkMode={darkMode}
+                    />
+                  </div>
+
                   <label
-                    className={`block text-[9px] font-medium ${
+                    className={`col-span-2 block text-[9px] font-medium ${
                       darkMode ? "text-slate-300" : "text-slate-700"
                     }`}
                   >

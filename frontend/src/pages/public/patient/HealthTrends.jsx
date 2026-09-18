@@ -24,31 +24,21 @@ import {
   YAxis,
 } from "recharts";
 
-/* ---------------------------------------------------------
-   GLUCOSE DATA
---------------------------------------------------------- */
-
-const glucoseData = [
-  { day: "16 Apr", value: 94 },
-  { day: "19 Apr", value: 101 },
-  { day: "22 Apr", value: 97 },
-  { day: "25 Apr", value: 105 },
-  { day: "28 Apr", value: 99 },
-  { day: "1 May", value: 108 },
-  { day: "4 May", value: 102 },
-  { day: "7 May", value: 98 },
-  { day: "10 May", value: 105 },
-  { day: "13 May", value: 100 },
-  { day: "16 May", value: 103 },
-  { day: "19 May", value: 101 },
-  { day: "22 May", value: 102 },
-];
+import { useAuth } from "../../../_core/hooks/useAuth";
+import patientService from "../../../services/patientService";
 
 /* ---------------------------------------------------------
    HEADER
 --------------------------------------------------------- */
 
 function Header({ darkMode, toggleTheme }) {
+  const { user } = useAuth();
+  const displayName =
+    user?.full_name ||
+    (user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : null) ||
+    user?.email ||
+    "Patient";
+
   return (
     <header
       className={`flex h-[72px] shrink-0 items-center justify-between border-b px-8 transition-colors duration-200 ${
@@ -153,11 +143,9 @@ function Header({ darkMode, toggleTheme }) {
           to="/patient/settings"
           className="flex items-center gap-3"
         >
-          <img
-            src="https://i.pravatar.cc/100?img=12"
-            alt="John Doe"
-            className="h-10 w-10 rounded-full object-cover"
-          />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-white font-semibold text-xs">
+            {displayName.slice(0, 2).toUpperCase()}
+          </div>
 
           <span
             className={`text-[14px] font-semibold ${
@@ -166,7 +154,7 @@ function Header({ darkMode, toggleTheme }) {
                 : "text-slate-900"
             }`}
           >
-            John Doe
+            {displayName}
           </span>
 
           <ChevronDown
@@ -182,6 +170,7 @@ function Header({ darkMode, toggleTheme }) {
     </header>
   );
 }
+
 
 /* ---------------------------------------------------------
    METRIC CARD
@@ -264,7 +253,7 @@ function MetricCard({
    BLOOD GLUCOSE CHART
 --------------------------------------------------------- */
 
-function BloodGlucoseCard({ darkMode }) {
+function BloodGlucoseCard({ darkMode, data = [] }) {
   const chartGrid = darkMode
     ? "#263936"
     : "#e2e8f0";
@@ -323,96 +312,108 @@ function BloodGlucoseCard({ darkMode }) {
       </div>
 
       <div className="mt-3 h-[230px]">
-        <ResponsiveContainer
-          width="100%"
-          height="100%"
-        >
-          <LineChart
-            data={glucoseData}
-            margin={{
-              top: 4,
-              right: 4,
-              left: -24,
-              bottom: 0,
-            }}
+        {data.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center text-center p-4">
+            <Activity size={28} className="text-slate-400 mb-2 opacity-40" />
+            <p className={`text-xs font-medium ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
+              No blood glucose trend data recorded yet
+            </p>
+            <p className={`text-[10px] mt-1 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+              Upload lab test reports to populate historical glucose charts.
+            </p>
+          </div>
+        ) : (
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
           >
-            <CartesianGrid
-              stroke={chartGrid}
-              strokeDasharray="2 4"
-            />
-
-            <XAxis
-              dataKey="day"
-              axisLine={false}
-              tickLine={false}
-              tick={{
-                fontSize: 8,
-                fill: chartText,
+            <LineChart
+              data={data}
+              margin={{
+                top: 4,
+                right: 4,
+                left: -24,
+                bottom: 0,
               }}
-            />
+            >
+              <CartesianGrid
+                stroke={chartGrid}
+                strokeDasharray="2 4"
+              />
 
-            <YAxis
-              domain={[80, 120]}
-              axisLine={false}
-              tickLine={false}
-              tick={{
-                fontSize: 8,
-                fill: chartText,
-              }}
-            />
+              <XAxis
+                dataKey="day"
+                axisLine={false}
+                tickLine={false}
+                tick={{
+                  fontSize: 8,
+                  fill: chartText,
+                }}
+              />
 
-            <Tooltip
-              content={({ active, payload, label }) => {
-                if (
-                  !active ||
-                  !payload?.length
-                ) {
-                  return null;
-                }
+              <YAxis
+                domain={["auto", "auto"]}
+                axisLine={false}
+                tickLine={false}
+                tick={{
+                  fontSize: 8,
+                  fill: chartText,
+                }}
+              />
 
-                return (
-                  <div
-                    className="rounded-xl border px-3 py-2"
-                    style={{
-                      backgroundColor:
-                        tooltipBg,
-                      borderColor:
-                        tooltipBorder,
-                      color: tooltipText,
-                    }}
-                  >
-                    <p className="text-[9px] font-semibold">
-                      {label}
-                    </p>
+              <Tooltip
+                content={({ active, payload, label }) => {
+                  if (
+                    !active ||
+                    !payload?.length
+                  ) {
+                    return null;
+                  }
 
-                    <p className="mt-1 text-[9px]">
-                      Blood glucose:{" "}
-                      <strong>
-                        {payload[0]?.value} mg/dL
-                      </strong>
-                    </p>
-                  </div>
-                );
-              }}
-            />
+                  return (
+                    <div
+                      className="rounded-xl border px-3 py-2"
+                      style={{
+                        backgroundColor:
+                          tooltipBg,
+                        borderColor:
+                          tooltipBorder,
+                        color: tooltipText,
+                      }}
+                    >
+                      <p className="text-[9px] font-semibold">
+                        {label}
+                      </p>
 
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke="#31b481"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{
-                r: 5,
-                fill: darkMode
-                  ? "#15211f"
-                  : "#ffffff",
-                stroke: "#31b481",
-                strokeWidth: 2,
-              }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+                      <p className="mt-1 text-[9px]">
+                        Blood glucose:{" "}
+                        <strong>
+                          {payload[0]?.value} mg/dL
+                        </strong>
+                      </p>
+                    </div>
+                  );
+                }}
+              />
+
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#31b481"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{
+                  r: 5,
+                  fill: darkMode
+                    ? "#15211f"
+                    : "#ffffff",
+                  stroke: "#31b481",
+                  strokeWidth: 2,
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </section>
   );
@@ -422,25 +423,7 @@ function BloodGlucoseCard({ darkMode }) {
    RECENT MEASUREMENTS
 --------------------------------------------------------- */
 
-function RecentMeasurements({ darkMode }) {
-  const rows = [
-    {
-      label: "Blood glucose",
-      date: "22 May",
-      value: "102 mg/dL",
-    },
-    {
-      label: "Blood pressure",
-      date: "22 May",
-      value: "120/78 mmHg",
-    },
-    {
-      label: "Blood glucose",
-      date: "19 May",
-      value: "101 mg/dL",
-    },
-  ];
-
+function RecentMeasurements({ darkMode, rows = [] }) {
   return (
     <section
       className={`shrink-0 rounded-[14px] border p-4 transition-colors duration-200 ${
@@ -479,7 +462,7 @@ function RecentMeasurements({ darkMode }) {
               : "bg-emerald-50 text-emerald-600"
           }`}
         >
-          26 records
+          {rows.length} {rows.length === 1 ? "record" : "records"}
         </span>
       </div>
 
@@ -490,44 +473,52 @@ function RecentMeasurements({ darkMode }) {
             : "divide-slate-200"
         }`}
       >
-        {rows.map((row) => (
-          <div
-            key={`${row.label}-${row.date}`}
-            className="flex items-center justify-between py-2"
-          >
-            <div>
-              <p
-                className={`text-[10px] font-medium ${
-                  darkMode
-                    ? "text-slate-200"
-                    : "text-slate-700"
-                }`}
-              >
-                {row.label}
-              </p>
-
-              <p
-                className={`text-[8px] ${
-                  darkMode
-                    ? "text-slate-500"
-                    : "text-slate-400"
-                }`}
-              >
-                {row.date}
-              </p>
-            </div>
-
-            <span
-              className={`text-[10px] font-semibold ${
-                darkMode
-                  ? "text-white"
-                  : "text-slate-900"
-              }`}
-            >
-              {row.value}
-            </span>
+        {rows.length === 0 ? (
+          <div className="py-4 text-center">
+            <p className={`text-[10px] ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+              No health measurements or diagnostic tests recorded yet.
+            </p>
           </div>
-        ))}
+        ) : (
+          rows.slice(0, 4).map((row, idx) => (
+            <div
+              key={`${row.label}-${idx}`}
+              className="flex items-center justify-between py-2"
+            >
+              <div>
+                <p
+                  className={`text-[10px] font-medium ${
+                    darkMode
+                      ? "text-slate-200"
+                      : "text-slate-700"
+                  }`}
+                >
+                  {row.label}
+                </p>
+
+                <p
+                  className={`text-[8px] ${
+                    darkMode
+                      ? "text-slate-500"
+                      : "text-slate-400"
+                  }`}
+                >
+                  {row.date}
+                </p>
+              </div>
+
+              <span
+                className={`text-[10px] font-semibold ${
+                  darkMode
+                    ? "text-white"
+                    : "text-slate-900"
+                }`}
+              >
+                {row.value}
+              </span>
+            </div>
+          ))
+        )}
       </div>
     </section>
   );
@@ -537,7 +528,9 @@ function RecentMeasurements({ darkMode }) {
    AI INSIGHT
 --------------------------------------------------------- */
 
-function AIInsight({ darkMode }) {
+function AIInsight({ darkMode, latestReport }) {
+  const hasAnalysis = Boolean(latestReport?.analysis_summary || latestReport?.extracted_text);
+
   return (
     <section
       className={`flex h-full min-h-0 flex-col rounded-[14px] border p-5 transition-colors duration-200 ${
@@ -581,23 +574,12 @@ function AIInsight({ darkMode }) {
                   : "text-slate-400"
               }`}
             >
-              Your health trends analyzed
+              Clinical diagnostic synthesis
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className={`rounded-xl border px-4 py-2 text-[10px] font-medium ${
-              darkMode
-                ? "border-slate-700 bg-[#101918] text-slate-200"
-                : "border-slate-200 bg-white text-slate-700"
-            }`}
-          >
-            Export
-          </button>
-
           <span
             className={`rounded-full px-2 py-1 text-[8px] font-medium ${
               darkMode
@@ -605,7 +587,7 @@ function AIInsight({ darkMode }) {
                 : "bg-emerald-50 text-emerald-600"
             }`}
           >
-            AI
+            AI Engine
           </span>
         </div>
       </div>
@@ -620,42 +602,27 @@ function AIInsight({ darkMode }) {
               : "border-slate-200 bg-slate-50"
           }`}
         >
-          <p
-            className={`text-[11px] leading-6 ${
-              darkMode
-                ? "text-slate-300"
-                : "text-slate-600"
-            }`}
-          >
-            Your recent blood glucose readings
-            have remained relatively stable,
-            with only minor variation across
-            the recorded period.
-          </p>
-
-          <p
-            className={`mt-5 text-[11px] leading-6 ${
-              darkMode
-                ? "text-slate-300"
-                : "text-slate-600"
-            }`}
-          >
-            The highest recorded value appears
-            around the beginning of May, followed
-            by a return toward your recent average.
-          </p>
-
-          <p
-            className={`mt-5 text-[11px] leading-6 ${
-              darkMode
-                ? "text-slate-300"
-                : "text-slate-600"
-            }`}
-          >
-            Keep your measurements up to date so
-            your health trends can be reviewed over
-            time.
-          </p>
+          {hasAnalysis ? (
+            <p
+              className={`text-[11px] leading-6 ${
+                darkMode
+                  ? "text-slate-300"
+                  : "text-slate-600"
+              }`}
+            >
+              {latestReport.analysis_summary || latestReport.extracted_text.slice(0, 300)}
+            </p>
+          ) : (
+            <p
+              className={`text-[11px] leading-6 ${
+                darkMode
+                  ? "text-slate-300"
+                  : "text-slate-600"
+              }`}
+            >
+              No AI clinical insights generated yet. Upload a diagnostic laboratory report or clinical document to run OCR and clinical metric analysis.
+            </p>
+          )}
         </div>
 
         {/* STATS */}
@@ -675,26 +642,17 @@ function AIInsight({ darkMode }) {
                   : "text-slate-400"
               }`}
             >
-              Latest reading
+              Latest report
             </p>
 
             <p
-              className={`mt-2 text-[18px] font-semibold ${
+              className={`mt-2 text-[13px] font-semibold truncate ${
                 darkMode
                   ? "text-white"
                   : "text-slate-900"
               }`}
             >
-              102{" "}
-              <span
-                className={`text-[9px] font-normal ${
-                  darkMode
-                    ? "text-slate-500"
-                    : "text-slate-400"
-                }`}
-              >
-                mg/dL
-              </span>
+              {latestReport?.title || "None recorded"}
             </p>
           </div>
 
@@ -712,29 +670,27 @@ function AIInsight({ darkMode }) {
                   : "text-slate-400"
               }`}
             >
-              Recent trend
+              Diagnostic status
             </p>
 
             <p
-              className={`mt-2 text-[14px] font-semibold ${
+              className={`mt-2 text-[13px] font-semibold ${
                 darkMode
                   ? "text-white"
                   : "text-slate-900"
               }`}
             >
-              Stable
+              {hasAnalysis ? "Analyzed" : "Pending data"}
             </p>
           </div>
         </div>
 
-        {/* BUTTON */}
-
-        <button
-          type="button"
-          className="mt-4 shrink-0 rounded-lg bg-emerald-500 px-3 py-3 text-[10px] font-semibold text-white transition-colors hover:bg-emerald-600"
+        <Link
+          to="/patient/reports-lab-tests"
+          className="mt-4 shrink-0 rounded-lg bg-emerald-500 px-3 py-3 text-center text-[10px] font-semibold text-white transition-colors hover:bg-emerald-600"
         >
-          View detailed analysis
-        </button>
+          View laboratory reports
+        </Link>
       </div>
     </section>
   );
@@ -746,6 +702,57 @@ function AIInsight({ darkMode }) {
 
 export default function HealthTrends() {
   const { isDark: darkMode, toggleTheme } = useTheme();
+  const [dashboardData, setDashboardData] = React.useState(null);
+  const [labReports, setLabReports] = React.useState([]);
+  const [medicalRecords, setMedicalRecords] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    Promise.allSettled([
+      patientService.getDashboardSummary(),
+      patientService.getLabReports(),
+      patientService.getMedicalRecords(),
+    ]).then(([dashRes, labRes, recRes]) => {
+      if (!isMounted) return;
+      if (dashRes.status === "fulfilled") setDashboardData(dashRes.value);
+      if (labRes.status === "fulfilled") {
+        const raw = labRes.value?.results || labRes.value || [];
+        setLabReports(Array.isArray(raw) ? raw : []);
+      }
+      if (recRes.status === "fulfilled") {
+        const raw = recRes.value?.results || recRes.value || [];
+        setMedicalRecords(Array.isArray(raw) ? raw : []);
+      }
+      setLoading(false);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const measurementRows = React.useMemo(() => {
+    const list = [];
+    medicalRecords.forEach((r) => {
+      list.push({
+        label: r.title || r.record_type || "Medical Record",
+        date: r.recorded_at
+          ? new Date(r.recorded_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+          : "Recorded",
+        value: r.record_type || "Clinical Record",
+      });
+    });
+    labReports.forEach((l) => {
+      list.push({
+        label: l.title || "Lab Diagnostic Report",
+        date: l.uploaded_at
+          ? new Date(l.uploaded_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+          : "Uploaded",
+        value: l.file_type || "Laboratory File",
+      });
+    });
+    return list;
+  }, [medicalRecords, labReports]);
 
   return (
     <div
@@ -765,8 +772,7 @@ export default function HealthTrends() {
         {/* UNIVERSAL SIDEBAR */}
         <Sidebar darkMode={darkMode} />
 
-        {/* MAIN CONTENT
-            Sidebar is fixed, so reserve its width here. */}
+        {/* MAIN CONTENT */}
         <main className="ml-[255px] flex min-w-0 flex-1 flex-col overflow-hidden">
           <Header
             darkMode={darkMode}
@@ -777,7 +783,7 @@ export default function HealthTrends() {
             {/* METRIC CARDS */}
 
             <div className="grid shrink-0 grid-cols-3 gap-3">
-              {/* BLOOD PRESSURE */}
+              {/* DIAGNOSTIC REPORTS */}
 
               <MetricCard
                 darkMode={darkMode}
@@ -787,13 +793,13 @@ export default function HealthTrends() {
                     className="text-emerald-500"
                   />
                 }
-                label="Blood Pressure"
-                value="120/78"
-                unit="mmHg latest"
-                badge="Normal"
+                label="Lab Diagnostic Reports"
+                value={dashboardData?.lab_reports_count ?? labReports.length}
+                unit="reports"
+                badge={labReports.length > 0 ? "Synchronized" : "Empty"}
               />
 
-              {/* BMI */}
+              {/* ACTIVE MEDICATIONS */}
 
               <MetricCard
                 darkMode={darkMode}
@@ -803,10 +809,10 @@ export default function HealthTrends() {
                     className="text-emerald-500"
                   />
                 }
-                label="BMI"
-                value="23.4"
-                unit="kg/m²"
-                badge="Normal"
+                label="Active Medications"
+                value={dashboardData?.active_medications_count ?? 0}
+                unit="prescriptions"
+                badge={dashboardData?.active_medications_count > 0 ? "Active" : "None"}
               />
 
               {/* RECORDED MEASUREMENTS */}
@@ -819,8 +825,8 @@ export default function HealthTrends() {
                     className="text-emerald-500"
                   />
                 }
-                label="Recorded Measurements"
-                value="26"
+                label="Total Medical Records"
+                value={dashboardData?.medical_records_count ?? medicalRecords.length}
                 unit="records"
                 badge="Updated"
               />
@@ -834,11 +840,13 @@ export default function HealthTrends() {
               <div className="flex min-h-0 min-w-0 flex-col gap-3">
                 <BloodGlucoseCard
                   darkMode={darkMode}
+                  data={[]}
                 />
 
-                <div className="min-h-[260px] flex-1 pt-17">
+                <div className="min-h-[260px] flex-1">
                   <RecentMeasurements
                     darkMode={darkMode}
+                    rows={measurementRows}
                   />
                 </div>
               </div>
@@ -848,6 +856,7 @@ export default function HealthTrends() {
               <div className="min-h-0">
                 <AIInsight
                   darkMode={darkMode}
+                  latestReport={labReports[0]}
                 />
               </div>
             </div>

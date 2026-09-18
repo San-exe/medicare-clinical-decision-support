@@ -102,6 +102,32 @@ export const patientService = {
     });
     return response.data;
   },
+
+  /**
+   * Evaluates pairwise or multi-drug interactions against OpenFDA/DrugBank knowledge.
+   * payload can be: { drugs: [...] } or { queried_drug: "...", patient_id?: number }
+   */
+  async checkInteractions(data) {
+    const response = await api.post("/medicines/interactions/", data);
+    return response.data;
+  },
+
+  /**
+   * Retrieves authenticated patient profile.
+   */
+  async getProfile() {
+    const response = await api.get("/patient/profile/");
+    return response.data;
+  },
+
+  /**
+   * Updates authenticated patient profile.
+   */
+  async updateProfile(data) {
+    const response = await api.patch("/patient/profile/", data);
+    return response.data;
+  },
 };
 
 export default patientService;
+
