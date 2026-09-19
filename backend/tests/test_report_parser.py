@@ -15,6 +15,7 @@ from apps.medical_records.services.report_parser import (
     classify_hba1c,
     classify_hemoglobin,
     classify_platelets,
+    classify_wbc,
 )
 
 
@@ -101,6 +102,64 @@ class TestMedicalReportParser:
         assert classify_platelets(110000)[0] == "low"
         assert classify_platelets(35000)[0] == "critical"
         assert classify_platelets(550000)[0] == "high"
+
+    def test_wbc_classification(self):
+        assert classify_wbc(6.5)[0] == "normal"
+        assert classify_wbc(3.2)[0] == "low"
+        assert classify_wbc(12.4)[0] == "high"
+        assert classify_wbc(32.0)[0] == "critical"
+        assert classify_wbc(1.5)[0] == "critical"
+        # High count passed as cells/mcL
+        assert classify_wbc(12400)[0] == "high"
+
+    def test_wbc_extraction_variations(self):
+        variations = [
+            ("WBC = 12.4", "12.4", "high"),
+            ("WBC: 12.4", "12.4", "high"),
+            ("W.B.C: 12.4", "12.4", "high"),
+            ("W.B.C. = 12.4", "12.4", "high"),
+            ("Total WBC = 12.4", "12.4", "high"),
+            ("Total WBC: 12.4 10^3/uL", "12.4", "high"),
+            ("Total Leucocyte Count: 12.4", "12.4", "high"),
+            ("Total Leukocyte Count = 12.4 x10^3/mcL", "12.4", "high"),
+            ("TLC: 12.4", "12.4", "high"),
+            ("White Blood Cells: 12.4 /mcL", "12.4", "high"),
+            ("White Blood Cell Count: 12.4", "12.4", "high"),
+            ("WBC: 12,400 cells/mcL", "12.4", "high"),
+            ("WBC: 7.0", "7.0", "normal"),
+        ]
+        for text, expected_val, expected_flag in variations:
+            extracted = extract_metrics_from_text(text)
+            assert len(extracted) == 1, f"Failed for text '{text}': got {extracted}"
+            wbc_metric = extracted[0]
+            assert wbc_metric["test_name"] == "White Blood Cell Count"
+            assert wbc_metric["value"] == expected_val
+            assert wbc_metric["flag"] == expected_flag
+
+    def test_parse_report_content_13_metrics_full_panel(self):
+        full_panel_text = """
+        OUTPATIENT CLINICAL SUMMARY & COMPREHENSIVE LAB PANEL:
+        Blood Pressure: 138/86 mmHg
+        Fasting Glucose: 110 mg/dL
+        HbA1c: 6.2%
+        Total Cholesterol: 210 mg/dL
+        LDL Cholesterol: 140 mg/dL
+        HDL Cholesterol: 38 mg/dL
+        Triglycerides: 180 mg/dL
+        Hemoglobin: 13.0 g/dL
+        Platelet Count: 210,000 cells/mcL
+        WBC = 12.4 10^3/uL
+        Serum Creatinine: 1.0 mg/dL
+        Potassium: 4.2 mmol/L
+        Sodium: 140 mmol/L
+        """
+        analysis = parse_report_content(full_panel_text, title="Full Comprehensive Panel")
+        assert analysis["total_metrics_extracted"] == 13
+        metric_names = [m["test_name"] for m in analysis["metrics"]]
+        assert "White Blood Cell Count" in metric_names
+        wbc_metric = next(m for m in analysis["metrics"] if m["test_name"] == "White Blood Cell Count")
+        assert wbc_metric["value"] == "12.4"
+        assert wbc_metric["flag"] == "high"
 
     def test_parse_report_content_multimetric(self):
         raw_text = """

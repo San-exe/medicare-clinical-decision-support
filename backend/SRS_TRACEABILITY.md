@@ -42,28 +42,30 @@ This document maps all MediCare System Requirements Specification (SRS) items to
 
 ---
 
-## PART 2 — OUT OF SCOPE / NOT IMPLEMENTED
+## PART 2 — AI & CLINICAL INTELLIGENCE REQUIREMENTS
 
-The following capabilities belong strictly to Part 2 and have intentionally **NOT** been implemented:
-
-- **NLP Disease Classifier**: Natural language symptom extraction model — `PART 2 — NOT IMPLEMENTED`
-- **Scikit-learn Prediction Models**: Supervised disease classifiers — `PART 2 — NOT IMPLEMENTED`
-- **XGBoost Risk Models**: Gradient boosted diagnostic models — `PART 2 — NOT IMPLEMENTED`
-- **Model Training / Fine-tuning Pipelines**: Training scripts and datasets — `PART 2 — NOT IMPLEMENTED`
-- **SHAP Execution**: Feature importance explainability computation — `PART 2 — NOT IMPLEMENTED`
-- **PubMed E-Utilities Client**: Biomedical literature search engine — `PART 2 — NOT IMPLEMENTED`
-- **PubMed RAG Engine**: Retrieval-augmented generation for clinical literature — `PART 2 — NOT IMPLEMENTED`
-- **OpenFDA Drug API Integration**: Drug label and adverse event lookup — `PART 2 — NOT IMPLEMENTED`
-- **DrugBank Integration**: Drug interaction database client — `PART 2 — NOT IMPLEMENTED`
-- **LLM Medical Assistant**: Generative clinical question answering — `PART 2 — NOT IMPLEMENTED`
-- **OCR / Medical Report AI Processing**: Automated text parsing from lab PDFs — `PART 2 — NOT IMPLEMENTED`
+| SRS Requirement | Description | Implemented Files / Components | Endpoint / Model | Automated Test | Status |
+|---|---|---|---|---|---|
+| **REQ-AI-01** | NLP Symptom Preprocessing, canonical vocabulary (140+ symptoms), bounded negation & vitals normalization | `ai/preprocessing.py`, `apps/predictions/views.py` | `POST /api/v1/predictions/symptoms/` | `test_ai_preprocessing.py`, `test_predictions_api.py` | **COMPLETE** |
+| **REQ-AI-02** | Supervised XGBoost Disease Classifier with probability calibration and risk level scoring | `ai/engine.py`, `ai/artifacts/v1.0.0/`, `ml/train.py` | `POST /api/v1/predictions/disease/` | `test_ai_training.py`, `test_ai_engine.py`, `test_predictions_api.py` | **COMPLETE** |
+| **REQ-AI-03** | TreeSHAP Feature Explainability attributions and clinical safety metadata | `ai/engine.py`, `apps/predictions/serializers.py` | `POST /api/v1/predictions/disease/` (embedded `shap_analysis`) | `test_predictions_and_shap.py`, `test_ai_engine.py` | **COMPLETE** |
+| **REQ-AI-04** | Tier-2 Knowledge Base TF-IDF Fallback Matcher (500+ conditions) for low-confidence or rare presentations | `ai/tier2_kb.py`, `ai/engine.py` | `POST /api/v1/predictions/disease/` | `test_ai_tier2_kb.py`, `test_ai_engine.py` | **COMPLETE** |
+| **REQ-LIT-01** | PubMed E-Utilities Client with 24-hour caching and timeout fallback | `apps/assistant/services/pubmed_service.py`, `integrations/pubmed_client.py` | Internal service / adapter | `test_assistant_and_rag.py::test_pubmed_service_*` | **COMPLETE** |
+| **REQ-LIT-02** | PubMed Literature RAG Engine with clean prose, structured citations, and regulatory disclaimers | `apps/assistant/services/rag_engine.py`, `apps/assistant/views.py` | `POST /api/v1/assistant/chat/`, `GET /api/v1/assistant/history/` | `test_assistant_and_rag.py` | **COMPLETE** |
+| **REQ-DRUG-01** | OpenFDA Drug Label Reactions and Boxed Warnings | `apps/medicines/services/openfda_service.py`, `integrations/openfda_client.py` | `GET /api/v1/medicines/openfda/reactions/` | `test_openfda_service.py` | **COMPLETE** |
+| **REQ-DRUG-02** | Unified Drug Interactions (OpenFDA + DrugBank adapter) evaluating pairs or patient prescriptions | `apps/medicines/services/openfda_service.py`, `integrations/drugbank_client.py` | `POST /api/v1/medicines/interactions/` | `test_clinical_intelligence_pipeline.py` | **COMPLETE** |
+| **REQ-PARS-01** | Diagnostic Lab Report Parser with regex extraction for 13 quantitative biomarkers (including WBC & electrolytes) | `apps/medical_records/services/report_parser.py`, `apps/medical_records/views.py` | `POST /api/v1/records/<id>/analyze/` | `test_report_parser.py`, `test_clinical_intelligence_pipeline.py` | **COMPLETE** |
 
 ---
 
-## PART 3 — OUT OF SCOPE / NOT IMPLEMENTED
+## KNOWN DISCREPANCIES & MINOR GAPS
 
-The following capabilities belong strictly to Part 3 and have intentionally **NOT** been implemented to protect the existing UI:
+| Discrepancy ID | Component | Description | Impact & Workaround |
+|---|---|---|---|
+| **GAP-APT-01** | Patient Portal Appointments UI | Patient appointment cancellation / rescheduling self-service UI buttons are not exposed in `frontend/src/pages/public/patient/appointments.jsx`. | Backend API `PATCH /api/v1/appointments/<id>/` fully supports cancellation and status updates; currently triggered via Doctor portal or direct API. |
 
-- **Full React Frontend API Integration**: Replacing mock data with live API endpoints — `PART 3 — NOT IMPLEMENTED`
-- **UI Architecture Changes**: Redesigning themes, layouts, or routes — `PART 3 — NOT IMPLEMENTED`
-- **State Management Migration**: Redesigning context or query hooks — `PART 3 — NOT IMPLEMENTED`
+---
+
+## PART 3 — FRONTEND INTEGRATION STATUS
+
+The frontend React application (`frontend/`) is fully configured and builds cleanly (`npm run build`). All core patient and doctor portals are connected to real backend APIs with active authorization and standardized error handling.

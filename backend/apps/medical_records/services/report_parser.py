@@ -483,16 +483,18 @@ def extract_metrics_from_text(text: str) -> List[Dict[str, Any]]:
 
     # 10. White Blood Cells (WBC)
     wbc_match = re.search(
-        r"(?:white\s*blood\s*(?:cells?|count)|wbc|leukocytes?)[:\s]*([0-9]+(?:\.[0-9]+)?)\s*(?:x10\^?[0-9]*/u[lL]|/mc[lL])?",
+        r"(?:total\s*)?(?:white\s*blood\s*(?:cell\s*count|cells?|count)|w\.?\s*b\.?\s*c\.?|leu[ck]ocytes?(?:\s*count)?|\btlc\b)[:\s=\-]+([0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?)\s*(?:x?10\^?[0-9]*/(?:u[lL]|mc[lL]|L)|k/(?:u[lL]|mc[lL])|cells/(?:mc[lL]|u[lL]|cumm)|/(?:mc[lL]|u[lL]|cumm|mm3))?",
         text,
         re.IGNORECASE,
     )
     if wbc_match:
-        val = float(wbc_match.group(1))
-        flag, note = classify_wbc(val)
+        raw_val = wbc_match.group(1).replace(",", "")
+        val = float(raw_val)
+        normalized_val = round(val / 1000.0, 2) if val >= 100 else val
+        flag, note = classify_wbc(normalized_val)
         metrics.append({
             "test_name": "White Blood Cell Count",
-            "value": str(val),
+            "value": str(normalized_val),
             "unit": "x10^3/mcL",
             "reference_range": "4.0-11.0",
             "flag": flag,

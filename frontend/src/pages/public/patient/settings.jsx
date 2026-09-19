@@ -402,7 +402,7 @@ function SectionCard({ darkMode, title, description, children }) {
 
 export default function Settings() {
   const [darkMode, setDarkMode] = useDarkMode();
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
 
   const [profile, setProfile] = useState({
     firstName: "",
@@ -485,6 +485,8 @@ export default function Settings() {
       setSaving(true);
       setSaveError("");
       await patientService.updateProfile({
+        first_name: profile.firstName,
+        last_name: profile.lastName,
         phone: profile.phone,
         date_of_birth: profile.dateOfBirth || null,
         blood_group: profile.bloodGroup || "",
@@ -492,6 +494,10 @@ export default function Settings() {
         address: profile.address || "",
         emergency_contact: profile.emergencyContact || "",
       });
+
+      if (typeof refresh === "function") {
+        await refresh();
+      }
 
       localStorage.setItem("medicare-notification-settings", JSON.stringify(notifications));
       localStorage.setItem("medicare-privacy-settings", JSON.stringify(privacy));
@@ -501,11 +507,20 @@ export default function Settings() {
       window.setTimeout(() => setSaved(false), 2200);
     } catch (err) {
       console.error("Failed to update profile:", err);
-      setSaveError(
-        err.response?.data?.message ||
-        err.response?.data?.detail ||
-        "Failed to save profile changes. Please try again."
-      );
+      const errorDetails = err.response?.data?.error?.details;
+      let errorMsg = "";
+      if (errorDetails && typeof errorDetails === "object") {
+        errorMsg = Object.entries(errorDetails)
+          .map(([field, errs]) => `${field.replace(/_/g, " ")}: ${Array.isArray(errs) ? errs.join(" ") : errs}`)
+          .join(" | ");
+      } else {
+        errorMsg =
+          err.response?.data?.error?.message ||
+          err.response?.data?.message ||
+          err.response?.data?.detail ||
+          "Failed to save profile changes. Please try again.";
+      }
+      setSaveError(errorMsg);
     } finally {
       setSaving(false);
     }

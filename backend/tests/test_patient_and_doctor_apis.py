@@ -47,6 +47,49 @@ class TestPatientAndDoctorAPIs:
         assert patch_res.status_code == status.HTTP_200_OK
         assert patch_res.json()["blood_group"] == "A-"
 
+    def test_patient_profile_validation_and_name_update(self):
+        self.client.force_authenticate(user=self.patient)
+
+        # Updating first/last name and profile details
+        update_payload = {
+            "first_name": "Alexander",
+            "last_name": "Fleming",
+            "phone": "+1-555-8899",
+            "emergency_contact": "Sara Fleming (+1-555-9988)",
+            "blood_group": "ab+",
+            "address": "742 Evergreen Terrace",
+            "date_of_birth": "1985-11-20",
+        }
+        patch_res = self.client.patch("/api/v1/patient/profile/", update_payload, format="json")
+        assert patch_res.status_code == status.HTTP_200_OK
+        data = patch_res.json()
+        assert data["first_name"] == "Alexander"
+        assert data["last_name"] == "Fleming"
+        assert data["phone"] == "+1-555-8899"
+        assert data["emergency_contact"] == "Sara Fleming (+1-555-9988)"
+        assert data["blood_group"] == "AB+"
+        assert data["address"] == "742 Evergreen Terrace"
+        assert data["date_of_birth"] == "1985-11-20"
+
+        # Verify persistence on User model
+        self.patient.refresh_from_db()
+        assert self.patient.first_name == "Alexander"
+        assert self.patient.last_name == "Fleming"
+
+        # Invalid blood group rejected with 400
+        inv_bg_res = self.client.patch("/api/v1/patient/profile/", {"blood_group": "XYZ_INVALID"}, format="json")
+        assert inv_bg_res.status_code == status.HTTP_400_BAD_REQUEST
+        assert inv_bg_res.json()["error"]["code"] == "VALIDATION_ERROR"
+        assert "blood_group" in inv_bg_res.json()["error"]["details"]
+
+        # Future date of birth rejected with 400
+        future_dob = (timezone.now() + timezone.timedelta(days=365)).strftime("%Y-%m-%d")
+        inv_dob_res = self.client.patch("/api/v1/patient/profile/", {"date_of_birth": future_dob}, format="json")
+        assert inv_dob_res.status_code == status.HTTP_400_BAD_REQUEST
+        assert inv_dob_res.json()["error"]["code"] == "VALIDATION_ERROR"
+        assert "date_of_birth" in inv_dob_res.json()["error"]["details"]
+
+
     def test_patient_dashboard_database_backed(self):
         self.client.force_authenticate(user=self.patient)
         res = self.client.get("/api/v1/patient/dashboard/")
